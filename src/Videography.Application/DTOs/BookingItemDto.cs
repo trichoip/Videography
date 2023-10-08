@@ -1,4 +1,5 @@
-﻿using Videography.Domain.Common;
+﻿using Videography.Application.DTOs.Products;
+using Videography.Domain.Common;
 
 namespace Videography.Application.DTOs;
 public class BookingItemDto : BaseEntity
@@ -15,6 +16,6 @@ public class BookingItemDto : BaseEntity
     public int ProductId { get; set; }
 
     public virtual BookingDto Booking { get; set; } = default!;
-    public virtual ProductDto Product { get; set; } = default!;
+    public virtual ProductResponse Product { get; set; } = default!;
 
 }

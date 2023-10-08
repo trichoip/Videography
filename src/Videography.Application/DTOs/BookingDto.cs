@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Videography.Application.DTOs.Addresses;
+using Videography.Application.DTOs.CreditCards;
+using Videography.Application.DTOs.Users;
 using Videography.Domain.Common;
 using Videography.Domain.Enums;
 
@@ -15,9 +18,9 @@ public class BookingDto : BaseEntity
     public int UserId { get; set; }
     public int CreditCardId { get; set; }
 
-    public virtual UserDto User { get; set; } = default!;
-    public virtual AddressDto Address { get; set; } = default!;
-    public virtual CreditCardDto CreditCard { get; set; } = default!;
+    public virtual UserResponse User { get; set; } = default!;
+    public virtual AddressResponse Address { get; set; } = default!;
+    public virtual CreditCardResponse CreditCard { get; set; } = default!;
 
     public virtual ICollection<BookingItemDto> BookingItems { get; set; } = new HashSet<BookingItemDto>();
 }

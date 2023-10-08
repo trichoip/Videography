@@ -1,8 +1,10 @@
-﻿namespace Videography.Application.DTOs
+﻿using Videography.Domain.Constants;
+
+namespace Videography.Application.DTOs.Auth
 {
     public sealed class AccessTokenResponse
     {
-        public string TokenType { get; } = "Bearer";
+        public string TokenType { get; } = Token.Bearer;
 
         public required string AccessToken { get; init; }
 
