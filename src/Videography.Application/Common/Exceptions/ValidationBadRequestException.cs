@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Videography.Application.Common.Exceptions;
 public class ValidationBadRequestException : Exception
@@ -13,5 +14,11 @@ public class ValidationBadRequestException : Exception
     public ValidationBadRequestException(ModelStateDictionary modelState) : base("Multiple errors occurred. See error details.")
     {
         ModelState = modelState;
+    }
+
+    public ValidationBadRequestException(IEnumerable<IdentityError> errors) : base("Multiple errors occurred. See error details.")
+    {
+        ModelState = new ModelStateDictionary();
+        errors.ToList().ForEach(error => ModelState.AddModelError(error.Code, error.Description));
     }
 }
