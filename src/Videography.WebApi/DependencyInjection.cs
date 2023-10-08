@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -15,7 +13,6 @@ using System.Text.Json.Serialization;
 using Videography.Application.Common.Exceptions;
 using Videography.Infrastructure;
 using Videography.WebApi.Extensions;
-using Videography.WebApi.Transformers;
 
 namespace Videography.WebApi;
 
@@ -34,12 +31,7 @@ public static class DependencyInjection
     private static void AddControllerServices(this IServiceCollection services)
     {
 
-        services.AddControllers(options =>
-        {
-            options.Conventions.Add(new RouteTokenTransformerConvention(new SlugifyParameterTransformer()));
-            options.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider());
-
-        }).AddJsonOptions(options =>
+        services.AddControllers().AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
@@ -92,26 +84,24 @@ public static class DependencyInjection
 
     public static async Task UseWebApplication(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.EnableDeepLinking();
-                c.EnablePersistAuthorization();
-                c.EnableTryItOutByDefault();
-            });
 
-            await app.UseInitialiseDatabaseAsync();
-            app.UseExceptionApplication();
-        }
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.EnableDeepLinking();
+            c.EnablePersistAuthorization();
+            c.EnableTryItOutByDefault();
+            c.DisplayRequestDuration();
+        });
+
+        app.UseExceptionApplication();
+
+        await app.UseInitialiseDatabaseAsync();
 
         app.UseCors(x => x
            .AllowAnyOrigin()
            .AllowAnyMethod()
            .AllowAnyHeader());
-
-        app.UseExceptionApplication();
 
         app.UseHttpsRedirection();
 
@@ -151,6 +141,9 @@ public static class DependencyInjection
                         break;
                     case UnauthorizedAccessException e:
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        break;
+                    case AppException e:
+                        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                         break;
                     default:
                         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
