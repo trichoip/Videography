@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Videography.Application.Helpers;
 using Videography.Application.Interfaces.Repositories;
 using Videography.Application.Interfaces.Services;
@@ -20,26 +21,27 @@ public static class DependencyInjection
 {
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+
+        services.AddServices();
         services.AddDbContext(configuration);
         services.AddRepositories();
-        services.AddServices();
         services.AddInitialiseDatabase();
         services.AddDefaultIdentity();
+
     }
 
     private static void AddServices(this IServiceCollection services)
     {
         services
             .AddScoped<TokenHelper<User>>()
+            .AddScoped<IAuthService, AuthService>()
+            .AddScoped<ICreditCardTypeService, CreditCardTypeService>()
             .AddScoped<ICurrentUserService, CurrentUserService>()
-            .AddScoped<IAddressService, AddressService>()
             .AddScoped<IBookingItemService, BookingItemService>()
             .AddScoped<IBookingService, BookingService>()
             .AddScoped<ICartItemService, CartItemService>()
             .AddScoped<ICartService, CartService>()
             .AddScoped<ICategoryService, CategoryService>()
-            .AddScoped<ICreditCardService, CreditCardService>()
-            .AddScoped<ICreditCardTypeService, CreditCardTypeService>()
             .AddScoped<IImageService, ImageService>()
             .AddScoped<IProductService, ProductService>()
             .AddScoped<IReviewService, ReviewService>()
@@ -61,7 +63,9 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
            options.UseMySQL(configuration.GetConnectionString("DefaultConnection")!,
                builder => options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>()))
-                  .UseLazyLoadingProxies());
+                  .UseLazyLoadingProxies()
+                  .EnableSensitiveDataLogging()
+                  .EnableDetailedErrors());
 
     }
 
@@ -70,13 +74,14 @@ public static class DependencyInjection
 
         services.AddIdentity<User, IdentityRole<int>>(options =>
         {
-            options.SignIn.RequireConfirmedAccount = false;
             options.Password.RequireDigit = false;
             options.Password.RequireLowercase = false;
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = false;
             options.Password.RequiredLength = 1;
             options.Password.RequiredUniqueChars = 0;
+
+            options.User.RequireUniqueEmail = true;
 
         }).AddEntityFrameworkStores<ApplicationDbContext>()
           .AddDefaultTokenProviders();
@@ -92,7 +97,22 @@ public static class DependencyInjection
     {
         using var scope = app.Services.CreateScope();
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
-        await initialiser.InitialiseAsync();
-        await initialiser.SeedAsync();
+
+        if (app.Environment.IsDevelopment())
+        {
+            await initialiser.MigrateAsync();
+            //await initialiser.DeletedAndMigrateAsync();
+            //await initialiser.SeedAsync();
+            Console.WriteLine("IsDevelopment: " + app.Environment.EnvironmentName);
+        }
+
+        if (app.Environment.IsProduction())
+        {
+            await initialiser.MigrateAsync();
+            Console.WriteLine("IsProduction: " + app.Environment.EnvironmentName);
+        }
+
+        Console.WriteLine(app.Environment.EnvironmentName);
+
     }
 }

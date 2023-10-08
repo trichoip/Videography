@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using Videography.Application.Helpers;
 using Videography.Application.Interfaces.Repositories;
 using Videography.Infrastructure.Data;
 
@@ -76,9 +75,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return await query.ToListAsync();
     }
 
-    public async Task<(int, PaginatedList<T>)> FindAsync(
-        int pageIndex = 0,
-        int pageSize = 10,
+    public Task<IQueryable<T>> FindToIQueryableAsync(
         Expression<Func<T, bool>>? expression = null,
         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
         Func<IQueryable<T>, IQueryable<T>>? includeFunc = null)
@@ -100,18 +97,16 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
             query = orderBy(query);
         }
 
-        var paginatedList = await PaginatedList<T>.CreateAsync(query, pageIndex, pageSize);
-
-        return (pageSize, paginatedList);
+        return Task.FromResult(query);
     }
 
-    public virtual Task RemoveAsync(T entity)
+    public virtual Task DeleteAsync(T entity)
     {
         dbSet.Remove(entity);
         return Task.CompletedTask;
     }
 
-    public virtual Task RemoveRangeAsync(IEnumerable<T> entities)
+    public virtual Task DeleteRangeAsync(IEnumerable<T> entities)
     {
         dbSet.RemoveRange(entities);
         return Task.CompletedTask;

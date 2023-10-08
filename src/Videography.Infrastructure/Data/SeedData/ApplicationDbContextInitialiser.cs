@@ -1,5 +1,4 @@
 ﻿using AutoBogus;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,7 @@ namespace Videography.Infrastructure.Data.SeedData;
 
 public class ApplicationDbContextInitialiser
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
@@ -21,17 +20,28 @@ public class ApplicationDbContextInitialiser
         ILogger<ApplicationDbContextInitialiser> logger,
         ApplicationDbContext context,
         UserManager<User> userManager,
-        IHttpContextAccessor httpContextAccessor,
         RoleManager<IdentityRole<int>> roleManager)
     {
         _logger = logger;
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
-        _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task InitialiseAsync()
+    public async Task MigrateAsync()
+    {
+        try
+        {
+            await _context.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while initialising the database.");
+            throw;
+        }
+    }
+
+    public async Task DeletedAndMigrateAsync()
     {
         try
         {
@@ -66,7 +76,7 @@ public class ApplicationDbContextInitialiser
         var admin = new User
         {
             UserName = "admin",
-            Email = "developermode549 @gmail.com",
+            Email = "developermode549@gmail.com",
             EmailConfirmed = true,
             Status = UserStatus.ACTIVE
         };
@@ -78,7 +88,7 @@ public class ApplicationDbContextInitialiser
         var user = new User
         {
             UserName = "user",
-            Email = "developermode549 @gmail.com",
+            Email = "developer@gmail.com",
             EmailConfirmed = true,
             Status = UserStatus.ACTIVE
         };
