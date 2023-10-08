@@ -11,6 +11,7 @@ public class Address
 
     public int UserId { get; set; }
 
-    public virtual ICollection<Booking> Bookings { get; set; } = new HashSet<Booking>();
     public virtual User User { get; set; } = default!;
+
+    public virtual ICollection<Booking> Bookings { get; set; } = new HashSet<Booking>();
 }
