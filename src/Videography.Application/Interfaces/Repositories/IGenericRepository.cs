@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using Videography.Application.Helpers;
 
 namespace Videography.Application.Interfaces.Repositories
 {
@@ -20,9 +19,7 @@ namespace Videography.Application.Interfaces.Repositories
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
             Func<IQueryable<T>, IQueryable<T>>? includeFunc = null);
 
-        Task<(int, PaginatedList<T>)> FindAsync(
-            int pageIndex = 0,
-            int pageSize = 10,
+        Task<IQueryable<T>> FindToIQueryableAsync(
             Expression<Func<T, bool>>? expression = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
             Func<IQueryable<T>, IQueryable<T>>? includeFunc = null);
@@ -30,7 +27,7 @@ namespace Videography.Application.Interfaces.Repositories
         Task UpdateAsync(T entity);
         Task CreateAsync(T entity);
         Task CreateRangeAsync(IEnumerable<T> entities);
-        Task RemoveAsync(T entity);
-        Task RemoveRangeAsync(IEnumerable<T> entities);
+        Task DeleteAsync(T entity);
+        Task DeleteRangeAsync(IEnumerable<T> entities);
     }
 }
