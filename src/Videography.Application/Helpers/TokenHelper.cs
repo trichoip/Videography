@@ -6,7 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Videography.Application.Common.Exceptions;
-using Videography.Application.DTOs;
+using Videography.Application.DTOs.Auth;
+using Videography.Domain.Constants;
 
 namespace Videography.Application.Helpers;
 
@@ -15,6 +16,8 @@ public class TokenHelper<T> where T : IdentityUser<int>, new()
     private readonly SignInManager<T> _signInManager;
     private readonly IConfiguration _configuration;
     private readonly IDataProtectionProvider _dataProtectionProvider;
+    private readonly IDataProtector protector;
+    private readonly TicketDataFormat ticketDataFormat;
 
     public TokenHelper(
         SignInManager<T> signInManager,
@@ -24,9 +27,13 @@ public class TokenHelper<T> where T : IdentityUser<int>, new()
         _signInManager = signInManager;
         _configuration = configuration;
         _dataProtectionProvider = dataProtectionProvider;
+
+        protector = _dataProtectionProvider.CreateProtector(Token.RefreshToken);
+        ticketDataFormat = new TicketDataFormat(protector);
+
     }
 
-    public async Task<AccessTokenResponse> CreateToken(string? username = null, T? user = null)
+    public async Task<AccessTokenResponse> CreateTokenAsync(string? username = null, T? user = null)
     {
         if (string.IsNullOrEmpty(username) && user is null) throw new BadRequestException("Username or User must be provided");
 
@@ -46,34 +53,31 @@ public class TokenHelper<T> where T : IdentityUser<int>, new()
 
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(Token.ExpiresIn),
             signingCredentials: creds);
 
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
-        var protector = _dataProtectionProvider.CreateProtector("RefreshToken");
-        var ticketDataFormat = new TicketDataFormat(protector);
         var response = new AccessTokenResponse
         {
             AccessToken = jwt,
-            ExpiresIn = (long)TimeSpan.FromHours(1).TotalSeconds,
+            ExpiresIn = (long)TimeSpan.FromHours(Token.ExpiresIn).TotalSeconds,
             RefreshToken = ticketDataFormat.Protect(CreateRefreshTicket(claimsPrincipal, DateTimeOffset.UtcNow)),
         };
         return response;
     }
 
-    public async Task<T> CheckValidRefreshToken(string refreshToken)
+    public async Task<T> ValidateRefreshTokenAsync(string refreshToken)
     {
         if (string.IsNullOrEmpty(refreshToken)) throw new BadRequestException("RefreshToken must be provided");
-        var protector = _dataProtectionProvider.CreateProtector("RefreshToken");
-        var ticketDataFormat = new TicketDataFormat(protector);
+
         var ticket = ticketDataFormat.Unprotect(refreshToken);
 
         if (ticket?.Properties?.ExpiresUtc is not { } expiresUtc ||
             DateTimeOffset.UtcNow >= expiresUtc ||
             await _signInManager.ValidateSecurityStampAsync(ticket.Principal) is not T user)
         {
-            throw new UnauthorizedAccessException("Unauthorized");
+            throw new UnauthorizedAccessException("Refresh token is not valid!");
         }
         return user;
     }
@@ -85,6 +89,6 @@ public class TokenHelper<T> where T : IdentityUser<int>, new()
             ExpiresUtc = utcNow.AddDays(14)
         };
 
-        return new AuthenticationTicket(user, refreshProperties, $"Bearer");
+        return new AuthenticationTicket(user, refreshProperties, Token.Bearer);
     }
 }
