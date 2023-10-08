@@ -409,9 +409,9 @@ namespace Videography.Infrastructure.Migrations
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TotalQuantity = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
-                    AddressId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    CreditCardId = table.Column<int>(type: "int", nullable: false),
+                    AddressId = table.Column<int>(type: "int", nullable: true),
+                    CreditCardId = table.Column<int>(type: "int", nullable: true),
                     CreatedBy = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: true),
                     ModifiedBy = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: true),
@@ -425,13 +425,13 @@ namespace Videography.Infrastructure.Migrations
                         column: x => x.AddressId,
                         principalTable: "Addresses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Bookings_CreditCards_CreditCardId",
                         column: x => x.CreditCardId,
                         principalTable: "CreditCards",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Bookings_Users_UserId",
                         column: x => x.UserId,

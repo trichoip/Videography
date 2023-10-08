@@ -189,7 +189,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Booking", b =>
@@ -198,7 +198,7 @@ namespace Videography.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("AddressId")
+                    b.Property<int?>("AddressId")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("CreatedAt")
@@ -208,7 +208,7 @@ namespace Videography.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<int>("CreditCardId")
+                    b.Property<int?>("CreditCardId")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("ModifiedAt")
@@ -240,7 +240,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.BookingItem", b =>
@@ -290,7 +290,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("BookingItems");
+                    b.ToTable("BookingItems", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Cart", b =>
@@ -327,7 +327,7 @@ namespace Videography.Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.CartItem", b =>
@@ -374,7 +374,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Category", b =>
@@ -390,7 +390,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.CreditCard", b =>
@@ -449,7 +449,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CreditCards");
+                    b.ToTable("CreditCards", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.CreditCardType", b =>
@@ -465,7 +465,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CreditCardTypes");
+                    b.ToTable("CreditCardTypes", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Image", b =>
@@ -485,7 +485,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Images");
+                    b.ToTable("Images", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Product", b =>
@@ -536,7 +536,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Review", b =>
@@ -579,7 +579,7 @@ namespace Videography.Infrastructure.Migrations
                     b.HasIndex("bookingItemId")
                         .IsUnique();
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.User", b =>
@@ -671,7 +671,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Wishlists");
+                    b.ToTable("Wishlists", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -741,14 +741,12 @@ namespace Videography.Infrastructure.Migrations
                     b.HasOne("Videography.Domain.Entities.Address", "Address")
                         .WithMany("Bookings")
                         .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Videography.Domain.Entities.CreditCard", "CreditCard")
                         .WithMany("Bookings")
                         .HasForeignKey("CreditCardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Videography.Domain.Entities.User", "User")
                         .WithMany("Bookings")

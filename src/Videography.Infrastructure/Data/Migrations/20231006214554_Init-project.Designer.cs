@@ -11,7 +11,7 @@ using Videography.Infrastructure.Data;
 namespace Videography.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231006183322_Init-project")]
+    [Migration("20231006214554_Init-project")]
     partial class Initproject
     {
         /// <inheritdoc />
@@ -201,7 +201,7 @@ namespace Videography.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("AddressId")
+                    b.Property<int?>("AddressId")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("CreatedAt")
@@ -211,7 +211,7 @@ namespace Videography.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<int>("CreditCardId")
+                    b.Property<int?>("CreditCardId")
                         .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("ModifiedAt")
@@ -744,14 +744,12 @@ namespace Videography.Infrastructure.Migrations
                     b.HasOne("Videography.Domain.Entities.Address", "Address")
                         .WithMany("Bookings")
                         .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Videography.Domain.Entities.CreditCard", "CreditCard")
                         .WithMany("Bookings")
                         .HasForeignKey("CreditCardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Videography.Domain.Entities.User", "User")
                         .WithMany("Bookings")
