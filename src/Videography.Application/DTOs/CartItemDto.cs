@@ -1,4 +1,5 @@
-﻿using Videography.Application.DTOs.Products;
+﻿using Videography.Application.DTOs.Carts;
+using Videography.Application.DTOs.Products;
 using Videography.Domain.Common;
 
 namespace Videography.Application.DTOs;
@@ -14,5 +15,5 @@ public class CartItemDto : BaseEntity
     public int ProductId { get; set; }
 
     public virtual ProductResponse Product { get; set; } = default!;
-    public virtual CartDto Cart { get; set; } = default!;
+    public virtual CartResponse Cart { get; set; } = default!;
 }

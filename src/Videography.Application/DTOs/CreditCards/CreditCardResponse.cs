@@ -13,5 +13,5 @@ public class CreditCardResponse : BaseEntity, IMapFrom<CreditCard>
     public int ExpiryYear { get; set; }
     public bool IsPrimary { get; set; }
     public int CreditCardTypeId { get; set; }
-    public virtual CreditCardTypeResponse CreditCardType { get; set; } = default!;
+    public CreditCardTypeResponse CreditCardType { get; set; } = default!;
 }

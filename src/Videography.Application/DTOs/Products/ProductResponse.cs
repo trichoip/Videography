@@ -16,8 +16,8 @@ public class ProductResponse : BaseEntity, IMapFrom<Product>
     public bool IsInWislish { get; set; }
 
     public int CategoryId { get; set; }
-    public virtual CategoryResponse Category { get; set; } = default!;
+    public CategoryResponse Category { get; set; } = default!;
 
-    public virtual ICollection<ImageResponse> Images { get; set; } = new HashSet<ImageResponse>();
+    public ICollection<ImageResponse> Images { get; set; } = new HashSet<ImageResponse>();
 
 }
