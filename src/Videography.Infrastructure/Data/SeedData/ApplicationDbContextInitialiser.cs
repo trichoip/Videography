@@ -90,7 +90,8 @@ public class ApplicationDbContextInitialiser
             UserName = "user",
             Email = "developer@gmail.com",
             EmailConfirmed = true,
-            Status = UserStatus.ACTIVE
+            Status = UserStatus.ACTIVE,
+            PhoneNumber = "0123456789"
         };
         await _userManager.CreateAsync(user, "user");
         await _userManager.AddToRolesAsync(user, new[] { Roles.User });

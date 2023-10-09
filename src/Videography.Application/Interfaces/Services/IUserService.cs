@@ -1,11 +1,14 @@
 ﻿using Videography.Application.DTOs.Addresses;
 using Videography.Application.DTOs.CreditCards;
+using Videography.Application.DTOs.Users;
 using Videography.Domain.Entities;
 
 namespace Videography.Application.Interfaces.Services;
 public interface IUserService
 {
-    Task<User?> GetCurrentUser();
+    Task<User?> GetCurrentUserAsync();
+    Task<UserResponse> GetProfileUserAsync();
+    Task UpdateAsync(UpdateUserRequest request);
 
     #region Addresses
     Task<IList<AddressResponse>> GetAddressesAsync();

@@ -1,7 +1,5 @@
-﻿using Videography.Application.Common.Exceptions;
-using Videography.Application.Interfaces.Repositories;
+﻿using Videography.Application.Interfaces.Repositories;
 using Videography.Application.Interfaces.Services;
-using Videography.Domain.Entities;
 
 namespace Videography.Infrastructure.Services;
 public class ImageService : IImageService
@@ -12,33 +10,33 @@ public class ImageService : IImageService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<byte[]> FindByIdAsync(int imageId)
+    public async Task<byte[]?> FindByIdAsync(int imageId)
     {
         var image = await _unitOfWork.ImageRepository.FindByIdAsync(imageId);
         if (image == null)
         {
-            throw new NotFoundException(nameof(Image), imageId);
+            //throw new NotFoundException(nameof(Image), imageId);
+            return null;
         }
-        if (image.Data == null)
-        {
-            throw new NotFoundException($"image {image.Id} error.");
-        }
+        //if (image.Data == null)
+        //{
+        //    throw new NotFoundException($"image {image.Id} error.");
+        //}
         return image.Data;
     }
 
-    public async Task<byte[]> FindUserAvatarAsync(int userId)
+    public async Task<byte[]?> FindUserAvatarAsync(int userId)
     {
         var user = await _unitOfWork.UserRepository.FindByIdAsync(userId);
-
         if (user == null)
         {
-            throw new NotFoundException(nameof(User), userId);
+            //throw new NotFoundException(nameof(User), userId);
+            return null;
         }
-
-        if (user.Avatar == null)
-        {
-            throw new NotFoundException($"user {user.Id} avatar error.");
-        }
+        //if (user.Avatar != null)
+        //{
+        //    throw new NotFoundException($"user {user.Id} avatar error.");
+        //}
         return user.Avatar;
     }
 

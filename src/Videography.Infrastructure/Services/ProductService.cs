@@ -115,7 +115,7 @@ public class ProductService : IProductService
         if (!await _unitOfWork.ProductRepository.ExistsByAsync(c => c.Id == productId))
             throw new NotFoundException(nameof(Product), productId);
         var images = await _unitOfWork.ImageRepository.FindAsync(c => c.ProductId == productId);
-        if (images.IsNullOrEmpty()) throw new NotFoundException($"product {productId} not have any image");
+        //if (images.IsNullOrEmpty()) throw new NotFoundException($"product {productId} not have any image");
         return _mapper.Map<IList<ImageResponse>>(images);
     }
 

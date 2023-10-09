@@ -82,8 +82,10 @@ public static class DependencyInjection
             options.Password.RequiredUniqueChars = 0;
 
             options.User.RequireUniqueEmail = true;
+            //options.Stores.ProtectPersonalData = true;
 
         }).AddEntityFrameworkStores<ApplicationDbContext>()
+          //.AddPersonalDataProtection<LookupProtector, KeyRing>()
           .AddDefaultTokenProviders();
     }
 

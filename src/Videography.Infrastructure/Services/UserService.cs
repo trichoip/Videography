@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Videography.Application.Common.Exceptions;
 using Videography.Application.DTOs.Addresses;
 using Videography.Application.DTOs.CreditCards;
+using Videography.Application.DTOs.Users;
 using Videography.Application.Extensions;
 using Videography.Application.Interfaces.Repositories;
 using Videography.Application.Interfaces.Services;
@@ -28,7 +29,7 @@ public class UserService : IUserService
         _userManager = userManager;
     }
 
-    public async Task<User?> GetCurrentUser()
+    public async Task<User?> GetCurrentUserAsync()
     {
         if (_httpContextAccessor.HttpContext?.User is not { } userClaimsPrincipal) return null;
 
@@ -41,7 +42,7 @@ public class UserService : IUserService
 
     public async Task<AddressResponse> AddAddressAsync(CreateAddressRequest request)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var address = _mapper.Map<Address>(request);
         address.User = user;
         await _unitOfWork.AddressRepository.CreateAsync(address);
@@ -52,7 +53,7 @@ public class UserService : IUserService
 
     public async Task EditAddressAsync(UpdateAddressRequest request)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
 
         var address = await _unitOfWork.AddressRepository.FindByAsync(c => c.Id == request.Id && c.UserId == user.Id);
         if (address == null) throw new NotFoundException($"User {user.Id} not have address {request.Id}");
@@ -75,7 +76,7 @@ public class UserService : IUserService
 
     public async Task RemoveAddressAsync(int addressId)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var address = await _unitOfWork.AddressRepository.FindByAsync(c => c.Id == addressId && c.UserId == user.Id);
         if (address == null) throw new NotFoundException($"User {user.Id} not have address {addressId}");
         await _unitOfWork.AddressRepository.DeleteAsync(address);
@@ -83,7 +84,7 @@ public class UserService : IUserService
     }
     public async Task RemoveAddressesAsync()
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         //var addresses = await _unitOfWork.AddressRepository.FindAsync(c => c.UserId == user.Id);
         //await _unitOfWork.AddressRepository.DeleteRangeAsync(addresses);
         if (user.Addresses.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any address");
@@ -93,7 +94,7 @@ public class UserService : IUserService
 
     public async Task<IList<AddressResponse>> GetAddressesAsync()
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var addresses = await _unitOfWork.AddressRepository.FindAsync(c => c.UserId == user.Id);
         //if (!addresses.Any()) throw new NotFoundException($"User {user.Id} not have any address");
         if (addresses.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any address");
@@ -102,7 +103,7 @@ public class UserService : IUserService
 
     public async Task<AddressResponse?> FindPrimaryAddressAsync()
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var address = await _unitOfWork.AddressRepository.FindByAsync(c => c.UserId == user.Id && c.IsPrimary == true);
         if (address == null) throw new NotFoundException($"User {user.Id} not have primary address");
         return _mapper.Map<AddressResponse>(address);
@@ -115,7 +116,7 @@ public class UserService : IUserService
 
     public async Task<AddressResponse?> FindAddressAsync(int addressId)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var address = await _unitOfWork.AddressRepository.FindByAsync(c => c.Id == addressId && c.UserId == user.Id);
         if (address == null) throw new NotFoundException($"User {user.Id} not have address {addressId}");
         return _mapper.Map<AddressResponse>(address);
@@ -123,7 +124,7 @@ public class UserService : IUserService
 
     public async Task SetPrimaryAddressAsync(int addressId, bool isPrimary)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var address = await _unitOfWork.AddressRepository.FindByAsync(c => c.Id == addressId && c.UserId == user.Id);
         if (address == null) throw new NotFoundException($"User {user.Id} not have address {addressId}");
         if (isPrimary == true) await CancelAllPrimaryAddressAsync(user.Id);
@@ -134,7 +135,7 @@ public class UserService : IUserService
 
     public async Task CancelAllPrimaryAddressAsync(int userId)
     {
-        //var user = await GetCurrentUser();
+        //var user = await GetCurrentUserAsync();
         //if (user == null) throw new UnauthorizedAccessException();
         var addresses = (await _unitOfWork.AddressRepository.FindAsync(c => c.UserId == userId && c.IsPrimary == true)).ToList();
         addresses.ForEach(c =>
@@ -150,7 +151,7 @@ public class UserService : IUserService
 
     public async Task<CreditCardResponse> AddCreditCardAsync(CreateCreditCardRequest request)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
 
         if (!await IsHasCreditCardTypeAsync(request.CreditCardTypeId))
             throw new NotFoundException(nameof(CreditCardType), request.CreditCardTypeId);
@@ -164,7 +165,7 @@ public class UserService : IUserService
     }
     public async Task EditCreditCardAsync(UpdateCreditCardRequest request)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
 
         if (!await IsHasCreditCardTypeAsync(request.CreditCardTypeId))
             throw new NotFoundException(nameof(CreditCardType), request.CreditCardTypeId);
@@ -178,7 +179,7 @@ public class UserService : IUserService
 
     public async Task RemoveCreditCardAsync(int creditCardId)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.Id == creditCardId && c.UserId == user.Id);
         if (creditCard == null) throw new NotFoundException($"User {user.Id} not have credit card {creditCardId}");
         await _unitOfWork.CreditCardRepository.DeleteAsync(creditCard);
@@ -187,7 +188,7 @@ public class UserService : IUserService
 
     public async Task RemoveCreditCardsAsync()
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         if (user.CreditCards.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any credit card");
         user.CreditCards.Clear();
         await _unitOfWork.CommitAsync();
@@ -195,7 +196,7 @@ public class UserService : IUserService
 
     public async Task<IList<CreditCardResponse>> GetCreditCardsAsync()
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var creditCards = await _unitOfWork.CreditCardRepository.FindAsync(c => c.UserId == user.Id);
         if (creditCards.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any credit card");
         return _mapper.Map<IList<CreditCardResponse>>(creditCards);
@@ -203,7 +204,7 @@ public class UserService : IUserService
 
     public async Task<CreditCardResponse?> FindPrimaryCreditCardAsync()
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.UserId == user.Id && c.IsPrimary == true);
         if (creditCard == null) throw new NotFoundException($"User {user.Id} not have primary credit card");
         return _mapper.Map<CreditCardResponse>(creditCard);
@@ -211,7 +212,7 @@ public class UserService : IUserService
 
     public async Task<CreditCardResponse?> FindCreditCardAsync(int creditCardId)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.Id == creditCardId && c.UserId == user.Id);
         if (creditCard == null) throw new NotFoundException($"User {user.Id} not have credit card {creditCardId}");
         return _mapper.Map<CreditCardResponse>(creditCard);
@@ -219,7 +220,7 @@ public class UserService : IUserService
 
     public async Task SetPrimaryCreditCardAsync(int creditCardId, bool isPrimary)
     {
-        if (await GetCurrentUser() is not { } user) throw new UnauthorizedAccessException();
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.Id == creditCardId && c.UserId == user.Id);
         if (creditCard == null) throw new NotFoundException($"User {user.Id} not have credit card {creditCardId}");
         if (isPrimary == true) await CancelAllPrimaryCreditCardAsync(user.Id);
@@ -237,4 +238,26 @@ public class UserService : IUserService
         return await _unitOfWork.CreditCardTypeRepository.ExistsByAsync(c => c.Id == creditCardTypeId);
     }
     #endregion
+
+    public async Task<UserResponse> GetProfileUserAsync()
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var userResponse = _mapper.Map<UserResponse>(user);
+        userResponse.TotalQuantityItemInCart = user.Cart?.CartItems.Count ?? 0;
+        return userResponse;
+    }
+
+    public async Task UpdateAsync(UpdateUserRequest request)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        if (user.Email != request.Email)
+        {
+            if (await _unitOfWork.UserRepository.ExistsByAsync(c => c.Email == request.Email))
+                throw new ConflictException($"Email {request.Email} is already taken");
+            user.EmailConfirmed = false;
+        }
+        _mapper.Map(request, user);
+        await _userManager.UpdateNormalizedEmailAsync(user);
+        await _unitOfWork.CommitAsync();
+    }
 }
