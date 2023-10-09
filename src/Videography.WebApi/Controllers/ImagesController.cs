@@ -17,6 +17,7 @@ public class ImagesController : ControllerBase
     public async Task<IActionResult> GetImageAsync(int imageId)
     {
         var image = await _imageService.FindByIdAsync(imageId);
+        if (image == null) image = new byte[0];
         return File(image, MediaTypeNames.Image.Jpeg);
     }
 
@@ -24,6 +25,11 @@ public class ImagesController : ControllerBase
     public async Task<IActionResult> GetUserAvatarAsync(int userId)
     {
         var avatar = await _imageService.FindUserAvatarAsync(userId);
+        if (avatar == null)
+        {
+            using HttpClient client = new HttpClient();
+            avatar = await client.GetByteArrayAsync("https://i.pravatar.cc/500");
+        }
         return File(avatar, MediaTypeNames.Image.Jpeg);
     }
 }

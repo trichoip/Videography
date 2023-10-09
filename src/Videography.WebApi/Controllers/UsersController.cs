@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Videography.Application.DTOs;
 using Videography.Application.DTOs.Addresses;
 using Videography.Application.DTOs.CreditCards;
+using Videography.Application.DTOs.Users;
 using Videography.Application.Interfaces.Services;
 
 namespace Videography.WebApi.Controllers;
@@ -16,6 +17,21 @@ public class UsersController : ControllerBase
     public UsersController(IUserService userService)
     {
         _userService = userService;
+    }
+
+    [HttpGet("Profile")]
+    public async Task<IActionResult> GetProfileUserAsync()
+    {
+        var userResponse = await _userService.GetProfileUserAsync();
+        userResponse.AvatarUrl = Url.Link(nameof(ImagesController.GetUserAvatarAsync), new { userId = userResponse.Id })!;
+        return Ok(userResponse);
+    }
+
+    [HttpPut("Profile")]
+    public async Task<IActionResult> UpdateAsync(UpdateUserRequest request)
+    {
+        await _userService.UpdateAsync(request);
+        return Ok(new { StatusMessage = $"Update profile successfully." });
     }
 
     #region Addresses
