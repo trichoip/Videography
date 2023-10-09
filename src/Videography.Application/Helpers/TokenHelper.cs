@@ -43,7 +43,6 @@ public class TokenHelper<T> where T : IdentityUser<int>, new()
         }
 
         var claimsPrincipal = await _signInManager.CreateUserPrincipalAsync(user);
-        IEnumerable<Claim> claims = claimsPrincipal.Claims;
 
         var key = new SymmetricSecurityKey(
             System.Text.Encoding.UTF8.GetBytes(
@@ -52,7 +51,7 @@ public class TokenHelper<T> where T : IdentityUser<int>, new()
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
         var token = new JwtSecurityToken(
-            claims: claims,
+            claims: claimsPrincipal.Claims,
             expires: DateTime.UtcNow.AddHours(Token.ExpiresIn),
             signingCredentials: creds);
 
