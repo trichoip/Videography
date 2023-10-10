@@ -11,8 +11,8 @@ using Videography.Infrastructure.Data;
 namespace Videography.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231006214554_Init-project")]
-    partial class Initproject
+    [Migration("20231009222217_init-project")]
+    partial class initproject
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -227,7 +227,7 @@ namespace Videography.Infrastructure.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("TotalQuantity")
                         .HasColumnType("int");
@@ -253,7 +253,7 @@ namespace Videography.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
@@ -317,7 +317,7 @@ namespace Videography.Infrastructure.Migrations
                         .HasColumnType("varchar(20)");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("TotalQuantity")
                         .HasColumnType("int");
@@ -340,7 +340,7 @@ namespace Videography.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<int>("CartId")
                         .HasColumnType("int");
@@ -498,7 +498,7 @@ namespace Videography.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(65,30)");
 
                     b.Property<double>("AverageRating")
                         .HasColumnType("double");

@@ -60,8 +60,9 @@ public static class DependencyInjection
     {
         services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
 
+        string defaultConnection = configuration.GetConnectionString("DefaultConnection")!;
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
-           options.UseMySQL(configuration.GetConnectionString("DefaultConnection")!,
+           options.UseMySql(defaultConnection, ServerVersion.AutoDetect(defaultConnection),
                builder => options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>()))
                   .UseLazyLoadingProxies()
                   .EnableSensitiveDataLogging()

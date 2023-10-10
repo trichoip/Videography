@@ -5,6 +5,7 @@ using Videography.Application.Helpers;
 using Videography.Application.Interfaces.Services;
 using Videography.Application.Specifications;
 using Videography.Domain.Constants;
+using Videography.WebApi.Attributes;
 
 namespace Videography.WebApi.Controllers;
 
@@ -104,7 +105,8 @@ public class ProductsController : ControllerBase
 
     [HttpPost("{id}/Image")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> AddImageAsync(int id, IFormFile image)
+    public async Task<IActionResult> AddImageAsync(
+        int id, [FileValidation(2 * 1024 * 1024, ".png", ".jpg", ".jpeg", ".gif")] IFormFile image)
     {
         await _productService.AddImageAsync(id, image);
         return Ok(new { StatusMessage = "Upload image successfuly" });
@@ -112,7 +114,8 @@ public class ProductsController : ControllerBase
 
     [HttpPost("{id}/Images")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> AddImagesAsync(int id, IFormFileCollection images)
+    public async Task<IActionResult> AddImagesAsync(
+        int id, [FileValidation(2 * 1024 * 1024, ".png", ".jpg", ".jpeg", ".gif")] IFormFileCollection images)
     {
         await _productService.AddImagesAsync(id, images);
         return Ok(new { StatusMessage = "Upload images successfuly" });
