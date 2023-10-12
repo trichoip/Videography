@@ -14,7 +14,6 @@ namespace Videography.Infrastructure.Data
 
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<Wishlist> Wishlists { get; set; }
-        public virtual DbSet<Cart> Carts { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<CreditCard> CreditCards { get; set; }
         public virtual DbSet<CreditCardType> CreditCardTypes { get; set; }

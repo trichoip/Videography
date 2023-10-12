@@ -14,7 +14,6 @@ namespace Videography.Infrastructure.Repositories
             BookingItemRepository = new BookingItemRepository(_context);
             BookingRepository = new BookingRepository(_context);
             CartItemRepository = new CartItemRepository(_context);
-            CartRepository = new CartRepository(_context);
             CategoryRepository = new CategoryRepository(_context);
             CreditCardRepository = new CreditCardRepository(_context);
             CreditCardTypeRepository = new CreditCardTypeRepository(_context);
@@ -30,7 +29,6 @@ namespace Videography.Infrastructure.Repositories
         public IBookingItemRepository BookingItemRepository { get; }
         public IBookingRepository BookingRepository { get; }
         public ICartItemRepository CartItemRepository { get; }
-        public ICartRepository CartRepository { get; }
         public ICategoryRepository CategoryRepository { get; }
         public ICreditCardRepository CreditCardRepository { get; }
         public ICreditCardTypeRepository CreditCardTypeRepository { get; }

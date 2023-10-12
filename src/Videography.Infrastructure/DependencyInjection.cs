@@ -40,7 +40,6 @@ public static class DependencyInjection
             .AddScoped<IBookingItemService, BookingItemService>()
             .AddScoped<IBookingService, BookingService>()
             .AddScoped<ICartItemService, CartItemService>()
-            .AddScoped<ICartService, CartService>()
             .AddScoped<ICategoryService, CategoryService>()
             .AddScoped<IImageService, ImageService>()
             .AddScoped<IProductService, ProductService>()
