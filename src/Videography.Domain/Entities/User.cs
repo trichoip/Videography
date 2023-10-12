@@ -11,8 +11,7 @@ public class User : IdentityUser<int>
     [EnumDataType(typeof(UserStatus))]
     public UserStatus Status { get; set; }
 
-    public virtual Cart Cart { get; set; } = default!;
-
+    public virtual ICollection<CartItem> CartItems { get; set; } = new HashSet<CartItem>();
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new HashSet<Wishlist>();
     public virtual ICollection<Address> Addresses { get; set; } = new HashSet<Address>();
     public virtual ICollection<CreditCard> CreditCards { get; set; } = new HashSet<CreditCard>();

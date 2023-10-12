@@ -6,7 +6,6 @@
         IBookingItemRepository BookingItemRepository { get; }
         IBookingRepository BookingRepository { get; }
         ICartItemRepository CartItemRepository { get; }
-        ICartRepository CartRepository { get; }
         ICategoryRepository CategoryRepository { get; }
         ICreditCardRepository CreditCardRepository { get; }
         ICreditCardTypeRepository CreditCardTypeRepository { get; }

@@ -102,10 +102,8 @@ public class ApplicationDbContextInitialiser
                 .WithSkip<Image>(c => c.Id)
                 .WithSkip<Image>(c => c.ProductId)
                 .WithSkip<CartItem>(c => c.Id)
-                .WithSkip<CartItem>(c => c.CartId)
+                .WithSkip<CartItem>(c => c.UserId)
                 .WithSkip<CartItem>(c => c.ProductId)
-                .WithSkip<Cart>(c => c.Id)
-                .WithSkip<Cart>(c => c.UserId)
                 .WithSkip<Review>(c => c.Id)
                 .WithSkip<Review>(c => c.bookingItemId)
                 .WithSkip<BookingItem>(c => c.Id)
@@ -215,8 +213,8 @@ public class ApplicationDbContextInitialiser
         var bookingItemFaker = new AutoFaker<BookingItem>()
             .RuleFor(x => x.Amount, _ => _.Random.Decimal(100, 1500))
             .RuleFor(x => x.Quantity, _ => _.Random.Int(1, 5))
-            .RuleFor(x => x.StartDate, _ => _.Date.Future())
-            .RuleFor(x => x.EndDate, (_, a) => a.StartDate + TimeSpan.FromDays(_.Random.Int(1, 5)))
+            .RuleFor(x => x.StartDate, _ => _.Date.FutureDateOnly())
+            .RuleFor(x => x.EndDate, (_, a) => a.StartDate.AddDays(_.Random.Int(1, 5)))
             .RuleFor(x => x.IsReviewed, _ => true)
             .RuleFor(x => x.Review, _ => reviewFaker.Generate())
             .RuleFor(x => x.Product, _ => _.Random.CollectionItem(product));
@@ -232,18 +230,11 @@ public class ApplicationDbContextInitialiser
             .Generate(3);
 
         var cartItemFaker = new AutoFaker<CartItem>()
-            .RuleFor(x => x.Amount, _ => _.Random.Decimal(100, 1500))
             .RuleFor(x => x.Quantity, _ => _.Random.Int(1, 10))
-            .RuleFor(x => x.StartDate, _ => _.Date.Future())
-            .RuleFor(x => x.EndDate, (_, a) => a.StartDate + TimeSpan.FromDays(_.Random.Int(1, 5)))
-            .RuleFor(x => x.Product, _ => _.Random.CollectionItem(product));
-
-        var cart = new AutoFaker<Cart>()
-            .RuleFor(x => x.User, _ => admin)
-            .RuleFor(x => x.TotalAmount, _ => _.Random.Decimal(300, 1500))
-            .RuleFor(x => x.TotalQuantity, _ => _.Random.Int(1, 15))
-            .RuleFor(x => x.CartItems, _ => cartItemFaker.Generate(7))
-            .Generate();
+            .RuleFor(x => x.StartDate, _ => _.Date.FutureDateOnly())
+            .RuleFor(x => x.EndDate, (_, a) => a.StartDate?.AddDays(_.Random.Int(1, 5)))
+            .RuleFor(x => x.Product, _ => _.Random.CollectionItem(product))
+            .RuleFor(x => x.User, _ => admin);
 
         await _context.AddRangeAsync(address);
         await _context.AddRangeAsync(category);
@@ -252,7 +243,6 @@ public class ApplicationDbContextInitialiser
         await _context.AddRangeAsync(product);
         await _context.AddRangeAsync(wishlist);
         await _context.AddRangeAsync(booking);
-        await _context.AddRangeAsync(cart);
 
         await _context.SaveChangesAsync();
 
