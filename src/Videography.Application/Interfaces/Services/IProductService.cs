@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using Videography.Application.DTOs.Images;
 using Videography.Application.DTOs.Products;
+using Videography.Application.DTOs.Reviews;
 using Videography.Application.Helpers;
 using Videography.Domain.Entities;
 
@@ -27,4 +28,6 @@ public interface IProductService
     Task RemoveImageAsync(int productId, int imageId);
     Task AddImagesAsync(int productId, IFormFileCollection images);
     Task RemoveImagesAsync(int productId);
+
+    Task<PaginatedList<ReviewResponse>> GetReviewsAsync(int productId, int pageIndex, int pageSize);
 }
