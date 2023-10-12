@@ -9,8 +9,7 @@ public class UpdateCartItemRequestValidator : AbstractValidator<UpdateCartItemRe
 
         RuleFor(x => x.EndDate)
             .GreaterThanOrEqualTo(x => x.StartDate).WithMessage("End date must be greater than start date")
-            .GreaterThanOrEqualTo(x => DateOnly.FromDateTime(DateTime.Now)).WithMessage("End date must be greater than today")
-            .WithMessage("End date must be greater than today");
+            .GreaterThanOrEqualTo(x => DateOnly.FromDateTime(DateTime.Now)).WithMessage("End date must be greater than today");
 
         RuleFor(x => x.StartDate)
             .GreaterThanOrEqualTo(x => DateOnly.FromDateTime(DateTime.Now)).WithMessage("Start date must be greater than today")

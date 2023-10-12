@@ -307,6 +307,7 @@ public class UserService : IUserService
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var cartItems = await _unitOfWork.CartItemRepository.FindAsync(c => c.UserId == user.Id);
+
         cartItems.ToList().ForEach(c =>
         {
             if (!IsValidBookingAsync(c.ProductId, c.StartDate, c.EndDate).Result)
@@ -315,6 +316,7 @@ public class UserService : IUserService
                 c.EndDate = null;
             }
         });
+
         await _unitOfWork.CommitAsync();
         return _mapper.Map<IList<CartItemResponse>>(cartItems);
     }
@@ -324,12 +326,20 @@ public class UserService : IUserService
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         if (!await IsHasProductAsync(request.ProductId)) throw new NotFoundException(nameof(Product), request.ProductId);
 
-        if (request.StartDate == null || request.EndDate == null)
-        {
-            request.StartDate = null;
-            request.EndDate = null;
-        }
-        else
+        //if (request.StartDate == null || request.EndDate == null)
+        //{
+        //    request.StartDate = null;
+        //    request.EndDate = null;
+        //}
+        //else
+        //{
+        //    if (!await IsValidBookingAsync(request.ProductId, request.StartDate, request.EndDate))
+        //    {
+        //        throw new BadRequestException($"The product has been booked during this period");
+        //    }
+        //}
+
+        if (request.StartDate != null && request.EndDate != null)
         {
             if (!await IsValidBookingAsync(request.ProductId, request.StartDate, request.EndDate))
             {
@@ -351,12 +361,20 @@ public class UserService : IUserService
         var cartItem = await _unitOfWork.CartItemRepository.FindByAsync(c => c.Id == request.Id && c.UserId == user.Id);
         if (cartItem == null) throw new NotFoundException($"User {user.Id} not have cart item {request.Id}");
 
-        if (request.StartDate == null || request.EndDate == null)
-        {
-            request.StartDate = null;
-            request.EndDate = null;
-        }
-        else
+        //if (request.StartDate == null || request.EndDate == null)
+        //{
+        //    request.StartDate = null;
+        //    request.EndDate = null;
+        //}
+        //else
+        //{
+        //    if (!await IsValidBookingAsync(cartItem.ProductId, request.StartDate, request.EndDate))
+        //    {
+        //        throw new BadRequestException($"The product has been booked during this period");
+        //    }
+        //}
+
+        if (request.StartDate != null && request.EndDate != null)
         {
             if (!await IsValidBookingAsync(cartItem.ProductId, request.StartDate, request.EndDate))
             {
