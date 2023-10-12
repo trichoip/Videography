@@ -29,25 +29,28 @@ public class ProductsController : ControllerBase
     {
         var specification = new ProductWithSpecification(productSpecPrams);
 
-        var productsResponse = await _productService
+        var paginationProducts = await _productService
             .GetProductsAsync(productSpecPrams.pageIndex,
                               productSpecPrams.pageSize,
                               specification.Criteria,
                               specification.OrderBy);
 
-        productsResponse.ForEach(productResponse =>
-            productResponse.Images.ToList().ForEach(imageResponse =>
-                 imageResponse.ImageUrl = Url.Link(nameof(ImagesController.GetImageAsync), new { imageId = imageResponse.Id })!));
+        //paginationProducts.ForEach(productResponse =>
+        //    productResponse.Images.ToList().ForEach(imageResponse =>
+        //         imageResponse.ImageUrl = Url.Link(Routes.ProductImageRoute, new { imageId = imageResponse.Id })!));
 
-        return Ok(productsResponse);
+        //return Ok(new PaginatedResponse<ProductResponse>(paginationProducts));
+        return Ok(paginationProducts.ToPaginatedResponse());
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductResponse>> FindById(int id)
     {
         var productResponse = await _productService.FindByIdAsync(id);
-        productResponse?.Images.ToList().ForEach(imageResponse =>
-            imageResponse.ImageUrl = Url.Link(nameof(ImagesController.GetImageAsync), new { imageId = imageResponse.Id })!);
+
+        //productResponse?.Images.ToList().ForEach(imageResponse =>
+        //    imageResponse.ImageUrl = Url.Link(Routes.ProductImageRoute, new { imageId = imageResponse.Id })!);
+
         return Ok(productResponse);
     }
 
@@ -83,7 +86,10 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> GetImagesAsync(int id)
     {
         var imageResponses = (await _productService.GetImagesAsync(id)).ToList();
-        imageResponses.ForEach(imageResponse => imageResponse.ImageUrl = Url.Link(nameof(ImagesController.GetImageAsync), new { imageId = imageResponse.Id })!);
+
+        //imageResponses.ForEach(imageResponse =>
+        //        imageResponse.ImageUrl = Url.Link(Routes.ProductImageRoute, new { imageId = imageResponse.Id })!);
+
         return Ok(imageResponses);
     }
 
@@ -119,6 +125,13 @@ public class ProductsController : ControllerBase
     {
         await _productService.AddImagesAsync(id, images);
         return Ok(new { StatusMessage = "Upload images successfuly" });
+    }
+
+    [HttpGet("{id}/Reviews")]
+    public async Task<IActionResult> GetReviewsAsync(int id, int pageIndex, int pageSize)
+    {
+        var paginationreviews = await _productService.GetReviewsAsync(id, pageIndex, pageSize);
+        return Ok(paginationreviews.ToPaginatedResponse());
     }
 
 }

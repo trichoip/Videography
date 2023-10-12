@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
@@ -25,6 +26,26 @@ public static class DependencyInjection
         services.AddControllerServices();
         services.AddSwaggerServices();
         services.AddAuthenticationServices(configuration);
+        services.AddUrlHelperServices();
+
+    }
+
+    private static void AddUrlHelperServices(this IServiceCollection services)
+    {
+
+        services.AddSingleton<IActionContextAccessor, ActionContextAccessor>()
+                .AddScoped((IServiceProvider it) =>
+                    it.GetRequiredService<IUrlHelperFactory>().GetUrlHelper(it.GetRequiredService<IActionContextAccessor>().ActionContext!));
+
+        //services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+        //services.AddScoped<IUrlHelper>(services =>
+        //{
+        //    var actionContextAccessor = services.GetService<IActionContextAccessor>();
+        //    return new UrlHelper(actionContextAccessor.ActionContext);
+
+        //    //var factory = services.GetService<IUrlHelperFactory>();
+        //    //return factory?.GetUrlHelper(actionContextAccessor.ActionContext);
+        //});
 
     }
 

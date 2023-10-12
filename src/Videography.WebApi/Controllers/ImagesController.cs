@@ -13,7 +13,7 @@ public class ImagesController : ControllerBase
         _imageService = imageService;
     }
 
-    [HttpGet("{imageId}", Name = nameof(GetImageAsync))]
+    [HttpGet("{imageId}", Name = Routes.ProductImageRoute)]
     public async Task<IActionResult> GetImageAsync(int imageId)
     {
         var image = await _imageService.FindByIdAsync(imageId);
@@ -21,7 +21,7 @@ public class ImagesController : ControllerBase
         return File(image, MediaTypeNames.Image.Jpeg);
     }
 
-    [HttpGet("User/{userId}", Name = nameof(GetUserAvatarAsync))]
+    [HttpGet("User/{userId}", Name = Routes.UserAvatarRoute)]
     public async Task<IActionResult> GetUserAvatarAsync(int userId)
     {
         var avatar = await _imageService.FindUserAvatarAsync(userId);
