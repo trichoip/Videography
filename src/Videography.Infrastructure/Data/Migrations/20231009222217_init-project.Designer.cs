@@ -12,7 +12,7 @@ namespace Videography.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20231009222217_init-project")]
-    partial class initproject
+    partial class Initproject
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

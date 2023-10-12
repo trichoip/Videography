@@ -12,7 +12,7 @@ namespace Videography.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20231012104833_change-datetime-to-dateonly")]
-    partial class changedatetimetodateonly
+    partial class Changedatetimetodateonly
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

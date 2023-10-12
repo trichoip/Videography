@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Videography.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class changedatetimetodateonly : Migration
+    public partial class Changedatetimetodateonly : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

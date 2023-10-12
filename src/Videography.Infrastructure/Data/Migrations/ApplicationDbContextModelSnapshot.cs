@@ -189,7 +189,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Booking", b =>
@@ -240,7 +240,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.BookingItem", b =>
@@ -290,7 +290,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("BookingItems");
+                    b.ToTable("BookingItems", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.CartItem", b =>
@@ -334,7 +334,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Category", b =>
@@ -350,7 +350,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.CreditCard", b =>
@@ -409,7 +409,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CreditCards");
+                    b.ToTable("CreditCards", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.CreditCardType", b =>
@@ -425,7 +425,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CreditCardTypes");
+                    b.ToTable("CreditCardTypes", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Image", b =>
@@ -445,7 +445,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Images");
+                    b.ToTable("Images", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Product", b =>
@@ -496,7 +496,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.Review", b =>
@@ -539,7 +539,7 @@ namespace Videography.Infrastructure.Migrations
                     b.HasIndex("bookingItemId")
                         .IsUnique();
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("Videography.Domain.Entities.User", b =>
@@ -631,7 +631,7 @@ namespace Videography.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Wishlists");
+                    b.ToTable("Wishlists", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

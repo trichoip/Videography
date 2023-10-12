@@ -12,7 +12,7 @@ namespace Videography.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20231012105046_update-nullable-startdate-enddate")]
-    partial class updatenullablestartdateenddate
+    partial class Updatenullablestartdateenddate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
