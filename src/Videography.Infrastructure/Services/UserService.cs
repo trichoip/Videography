@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Videography.Application.Common.Exceptions;
 using Videography.Application.DTOs.Addresses;
+using Videography.Application.DTOs.Carts;
 using Videography.Application.DTOs.CreditCards;
 using Videography.Application.DTOs.Users;
-using Videography.Application.Extensions;
 using Videography.Application.Interfaces.Repositories;
 using Videography.Application.Interfaces.Services;
 using Videography.Domain.Entities;
@@ -17,25 +19,20 @@ public class UserService : IUserService
     private readonly IMapper _mapper;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<User> _userManager;
+    private readonly IUrlHelper _urlHelper;
+
     public UserService(
         IUnitOfWork unitOfWork,
         UserManager<User> userManager,
         IHttpContextAccessor httpContextAccessor,
+        IUrlHelper urlHelper,
         IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _httpContextAccessor = httpContextAccessor;
         _userManager = userManager;
-    }
-
-    public async Task<User?> GetCurrentUserAsync()
-    {
-        if (_httpContextAccessor.HttpContext?.User is not { } userClaimsPrincipal) return null;
-
-        var user = await _userManager.GetUserAsync(userClaimsPrincipal);
-
-        return user;
+        _urlHelper = urlHelper;
     }
 
     #region Address
@@ -87,7 +84,9 @@ public class UserService : IUserService
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         //var addresses = await _unitOfWork.AddressRepository.FindAsync(c => c.UserId == user.Id);
         //await _unitOfWork.AddressRepository.DeleteRangeAsync(addresses);
-        if (user.Addresses.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any address");
+
+        //if (user.Addresses.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any address");
+
         user.Addresses.Clear();
         await _unitOfWork.CommitAsync();
     }
@@ -95,9 +94,10 @@ public class UserService : IUserService
     public async Task<IList<AddressResponse>> GetAddressesAsync()
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        // do trong AddressResponse không có entity child nên không cần dùng ProjectTo
         var addresses = await _unitOfWork.AddressRepository.FindAsync(c => c.UserId == user.Id);
         //if (!addresses.Any()) throw new NotFoundException($"User {user.Id} not have any address");
-        if (addresses.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any address");
+        //if (addresses.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any address");
         return _mapper.Map<IList<AddressResponse>>(addresses);
     }
 
@@ -109,17 +109,17 @@ public class UserService : IUserService
         return _mapper.Map<AddressResponse>(address);
     }
 
-    public Task<bool> IsPrimaryAddressAsync(int addressId)
-    {
-        return _unitOfWork.AddressRepository.ExistsByAsync(c => c.Id == addressId && c.IsPrimary == true);
-    }
-
     public async Task<AddressResponse?> FindAddressAsync(int addressId)
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var address = await _unitOfWork.AddressRepository.FindByAsync(c => c.Id == addressId && c.UserId == user.Id);
         if (address == null) throw new NotFoundException($"User {user.Id} not have address {addressId}");
         return _mapper.Map<AddressResponse>(address);
+    }
+
+    public Task<bool> IsPrimaryAddressAsync(int addressId)
+    {
+        return _unitOfWork.AddressRepository.ExistsByAsync(c => c.Id == addressId && c.IsPrimary == true);
     }
 
     public async Task SetPrimaryAddressAsync(int addressId, bool isPrimary)
@@ -189,7 +189,7 @@ public class UserService : IUserService
     public async Task RemoveCreditCardsAsync()
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
-        if (user.CreditCards.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any credit card");
+        //if (user.CreditCards.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any credit card");
         user.CreditCards.Clear();
         await _unitOfWork.CommitAsync();
     }
@@ -197,25 +197,42 @@ public class UserService : IUserService
     public async Task<IList<CreditCardResponse>> GetCreditCardsAsync()
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
-        var creditCards = await _unitOfWork.CreditCardRepository.FindAsync(c => c.UserId == user.Id);
-        if (creditCards.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any credit card");
-        return _mapper.Map<IList<CreditCardResponse>>(creditCards);
+
+        //var creditCards = await _unitOfWork.CreditCardRepository.FindAsync(c => c.UserId == user.Id);
+        //var creditCardResponses = _mapper.Map<IList<CreditCardResponse>>(creditCards);
+
+        var creditCards = await _unitOfWork.CreditCardRepository.FindToIQueryableAsync(c => c.UserId == user.Id);
+        var creditCardResponses = await _mapper.ProjectTo<CreditCardResponse>(creditCards).ToListAsync();
+
+        return creditCardResponses;
     }
 
     public async Task<CreditCardResponse?> FindPrimaryCreditCardAsync()
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
-        var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.UserId == user.Id && c.IsPrimary == true);
-        if (creditCard == null) throw new NotFoundException($"User {user.Id} not have primary credit card");
-        return _mapper.Map<CreditCardResponse>(creditCard);
+
+        //var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.UserId == user.Id && c.IsPrimary == true);
+        //if (creditCard == null) throw new NotFoundException($"User {user.Id} not have primary credit card");
+
+        var creditCard = await _unitOfWork.CreditCardRepository.FindToIQueryableAsync(c => c.UserId == user.Id && c.IsPrimary == true);
+        var creditCardResponse = await _mapper.ProjectTo<CreditCardResponse>(creditCard).FirstOrDefaultAsync();
+        if (creditCardResponse == null) throw new NotFoundException($"User {user.Id} not have primary credit card");
+
+        return creditCardResponse;
     }
 
     public async Task<CreditCardResponse?> FindCreditCardAsync(int creditCardId)
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
-        var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.Id == creditCardId && c.UserId == user.Id);
-        if (creditCard == null) throw new NotFoundException($"User {user.Id} not have credit card {creditCardId}");
-        return _mapper.Map<CreditCardResponse>(creditCard);
+
+        //var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.Id == creditCardId && c.UserId == user.Id);
+        //if (creditCard == null) throw new NotFoundException($"User {user.Id} not have credit card {creditCardId}");
+
+        var creditCard = await _unitOfWork.CreditCardRepository.FindToIQueryableAsync(c => c.Id == creditCardId && c.UserId == user.Id);
+        var creditCardResponse = await _mapper.ProjectTo<CreditCardResponse>(creditCard).FirstOrDefaultAsync();
+        if (creditCardResponse == null) throw new NotFoundException($"User {user.Id} not have credit card {creditCardId}");
+
+        return creditCardResponse;
     }
 
     public async Task SetPrimaryCreditCardAsync(int creditCardId, bool isPrimary)
@@ -239,11 +256,13 @@ public class UserService : IUserService
     }
     #endregion
 
+    #region User
     public async Task<UserResponse> GetProfileUserAsync()
     {
         if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         var userResponse = _mapper.Map<UserResponse>(user);
-        userResponse.TotalQuantityItemInCart = user.Cart?.CartItems.Count ?? 0;
+        //userResponse.TotalQuantityItemInCart = user.Cart?.CartItems.Count ?? 0;
+        userResponse.AvatarUrl = _urlHelper.Link(Routes.UserAvatarRoute, new { userId = userResponse.Id })!;
         return userResponse;
     }
 
@@ -260,4 +279,142 @@ public class UserService : IUserService
         await _userManager.UpdateNormalizedEmailAsync(user);
         await _unitOfWork.CommitAsync();
     }
+
+    public async Task EditAvatarAsync(IFormFile avatar)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+
+        using (var ms = new MemoryStream())
+        {
+            await avatar.CopyToAsync(ms);
+            user.Avatar = ms.ToArray();
+        }
+        await _unitOfWork.CommitAsync();
+    }
+
+    public async Task<User?> GetCurrentUserAsync()
+    {
+        if (_httpContextAccessor.HttpContext?.User is not { } userClaimsPrincipal) return null;
+
+        var user = await _userManager.GetUserAsync(userClaimsPrincipal);
+
+        return user;
+    }
+    #endregion
+
+    #region Carts
+    public async Task<IList<CartItemResponse>> GetCartItemsAsync()
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var cartItems = await _unitOfWork.CartItemRepository.FindAsync(c => c.UserId == user.Id);
+        cartItems.ToList().ForEach(c =>
+        {
+            if (!IsValidBookingAsync(c.ProductId, c.StartDate, c.EndDate).Result)
+            {
+                c.StartDate = null;
+                c.EndDate = null;
+            }
+        });
+        await _unitOfWork.CommitAsync();
+        return _mapper.Map<IList<CartItemResponse>>(cartItems);
+    }
+
+    public async Task<CartItemResponse> AddCartItemAsync(CreateCartItemRequest request)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        if (!await IsHasProductAsync(request.ProductId)) throw new NotFoundException(nameof(Product), request.ProductId);
+
+        if (request.StartDate == null || request.EndDate == null)
+        {
+            request.StartDate = null;
+            request.EndDate = null;
+        }
+        else
+        {
+            if (!await IsValidBookingAsync(request.ProductId, request.StartDate, request.EndDate))
+            {
+                throw new BadRequestException($"The product has been booked during this period");
+            }
+        }
+
+        var cartItem = _mapper.Map<CartItem>(request);
+        cartItem.User = user;
+        await _unitOfWork.CartItemRepository.CreateAsync(cartItem);
+        await _unitOfWork.CommitAsync();
+        return _mapper.Map<CartItemResponse>(cartItem);
+
+    }
+
+    public async Task EditCartItemAsync(UpdateCartItemRequest request)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var cartItem = await _unitOfWork.CartItemRepository.FindByAsync(c => c.Id == request.Id && c.UserId == user.Id);
+        if (cartItem == null) throw new NotFoundException($"User {user.Id} not have cart item {request.Id}");
+
+        if (request.StartDate == null || request.EndDate == null)
+        {
+            request.StartDate = null;
+            request.EndDate = null;
+        }
+        else
+        {
+            if (!await IsValidBookingAsync(cartItem.ProductId, request.StartDate, request.EndDate))
+            {
+                throw new BadRequestException($"The product has been booked during this period");
+            }
+        }
+
+        _mapper.Map(request, cartItem);
+        await _unitOfWork.CommitAsync();
+    }
+
+    public async Task RemoveCartItemAsync(int cartItemId)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var cartItem = await _unitOfWork.CartItemRepository.FindByAsync(c => c.Id == cartItemId && c.UserId == user.Id);
+        if (cartItem == null) throw new NotFoundException($"User {user.Id} not have cart item {cartItemId}");
+        await _unitOfWork.CartItemRepository.DeleteAsync(cartItem);
+        await _unitOfWork.CommitAsync();
+    }
+
+    public async Task RemoveCartItemsAsync()
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        user.CartItems.Clear();
+        await _unitOfWork.CommitAsync();
+    }
+
+    public async Task<bool> IsValidBookingAsync(int productId, DateOnly? startDate, DateOnly? endDate)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var dateNow = DateOnly.FromDateTime(DateTime.Now);
+        if (startDate == null || endDate == null || startDate < dateNow || endDate < dateNow)
+        {
+            return false;
+        }
+        //if (startDate > endDate)
+        //{
+        //    throw new BadRequestException("Start date must be less than end date");
+        //}
+
+        var isHasBooking = await _unitOfWork.BookingItemRepository
+            .ExistsByAsync(c => c.ProductId == productId &&
+                          (startDate >= c.StartDate && startDate <= c.EndDate ||
+                           endDate >= c.StartDate && endDate <= c.EndDate ||
+                           c.StartDate >= startDate && c.StartDate <= endDate ||
+                           c.EndDate >= startDate && c.EndDate <= endDate));
+        if (isHasBooking)
+        {
+            return false;
+        }
+
+        return true;
+
+    }
+
+    public async Task<bool> IsHasProductAsync(int productId)
+    {
+        return await _unitOfWork.ProductRepository.ExistsByAsync(c => c.Id == productId);
+    }
+    #endregion
 }

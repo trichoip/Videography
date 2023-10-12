@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Videography.Application.DTOs;
 using Videography.Application.DTOs.Addresses;
+using Videography.Application.DTOs.Carts;
 using Videography.Application.DTOs.CreditCards;
 using Videography.Application.DTOs.Users;
 using Videography.Application.Interfaces.Services;
+using Videography.WebApi.Attributes;
 
 namespace Videography.WebApi.Controllers;
 
@@ -19,11 +21,13 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
+    #region User
+
     [HttpGet("Profile")]
     public async Task<IActionResult> GetProfileUserAsync()
     {
         var userResponse = await _userService.GetProfileUserAsync();
-        userResponse.AvatarUrl = Url.Link(nameof(ImagesController.GetUserAvatarAsync), new { userId = userResponse.Id })!;
+        //userResponse.AvatarUrl = Url.Link(Routes.UserAvatarRoute, new { userId = userResponse.Id })!;
         return Ok(userResponse);
     }
 
@@ -33,6 +37,14 @@ public class UsersController : ControllerBase
         await _userService.UpdateAsync(request);
         return Ok(new { StatusMessage = $"Update profile successfully." });
     }
+
+    [HttpPatch("Avatar")]
+    public async Task<IActionResult> EditAvatarAsync([FileValidation(2 * 1024 * 1024, ".png", ".jpg", ".jpeg", ".gif")] IFormFile avatar)
+    {
+        await _userService.EditAvatarAsync(avatar);
+        return Ok(new { StatusMessage = $"Update avatar successfully." });
+    }
+    #endregion
 
     #region Addresses
     [HttpGet("Addresses")]
@@ -161,4 +173,47 @@ public class UsersController : ControllerBase
     }
     #endregion
 
+    #region Carts
+
+    [HttpGet("CartItems")]
+    public async Task<IActionResult> GetCartItemsAsync()
+    {
+        var cartItemResponses = await _userService.GetCartItemsAsync();
+        return Ok(cartItemResponses);
+    }
+
+    [HttpPost("CartItems")]
+    public async Task<IActionResult> AddCartItemAsync(CreateCartItemRequest request)
+    {
+        var cartItemResponse = await _userService.AddCartItemAsync(request);
+        return Ok(cartItemResponse);
+    }
+
+    [HttpDelete("CartItems")]
+    public async Task<IActionResult> RemoveCartItemsAsync()
+    {
+        await _userService.RemoveCartItemsAsync();
+        return Ok(new { StatusMessage = $"Remove all CartItems succesfully." });
+    }
+
+    [HttpDelete("CartItems/{cartItemId}")]
+    public async Task<IActionResult> RemoveCartItemAsync(int cartItemId)
+    {
+        await _userService.RemoveCartItemAsync(cartItemId);
+        return Ok(new { StatusMessage = $"Remove CreditCard {cartItemId} succesfully." });
+    }
+
+    [HttpPut("CartItems/{cartItemId}")]
+    public async Task<IActionResult> EditCartItemAsync(int cartItemId, UpdateCartItemRequest request)
+    {
+        if (cartItemId != request.Id)
+        {
+            return BadRequest();
+        }
+
+        await _userService.EditCartItemAsync(request);
+        return Ok(new { StatusMessage = $"Update CreditCard {cartItemId} succesfully." });
+    }
+
+    #endregion
 }

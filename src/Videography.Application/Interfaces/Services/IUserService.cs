@@ -1,4 +1,6 @@
-﻿using Videography.Application.DTOs.Addresses;
+﻿using Microsoft.AspNetCore.Http;
+using Videography.Application.DTOs.Addresses;
+using Videography.Application.DTOs.Carts;
 using Videography.Application.DTOs.CreditCards;
 using Videography.Application.DTOs.Users;
 using Videography.Domain.Entities;
@@ -6,9 +8,12 @@ using Videography.Domain.Entities;
 namespace Videography.Application.Interfaces.Services;
 public interface IUserService
 {
+    #region User
     Task<User?> GetCurrentUserAsync();
     Task<UserResponse> GetProfileUserAsync();
     Task UpdateAsync(UpdateUserRequest request);
+    Task EditAvatarAsync(IFormFile avatar);
+    #endregion
 
     #region Addresses
     Task<IList<AddressResponse>> GetAddressesAsync();
@@ -36,4 +41,13 @@ public interface IUserService
     Task<bool> IsHasCreditCardTypeAsync(int creditCardTypeId);
     #endregion
 
+    #region Cart
+    Task<IList<CartItemResponse>> GetCartItemsAsync();
+    Task<CartItemResponse> AddCartItemAsync(CreateCartItemRequest request);
+    Task EditCartItemAsync(UpdateCartItemRequest request);
+    Task RemoveCartItemAsync(int cartItemId);
+    Task RemoveCartItemsAsync();
+    Task<bool> IsValidBookingAsync(int productId, DateOnly? startDate, DateOnly? endDate);
+    Task<bool> IsHasProductAsync(int productId);
+    #endregion
 }
