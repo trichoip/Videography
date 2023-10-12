@@ -1,4 +1,5 @@
-﻿using Videography.Application.Common.Mappings;
+﻿using AutoMapper;
+using Videography.Application.Common.Mappings;
 using Videography.Domain.Entities;
 using Videography.Domain.Enums;
 
@@ -14,4 +15,10 @@ public class UserResponse : IMapFrom<User>
     public UserStatus Status { get; set; }
     public string? AvatarUrl { get; set; }
     public int TotalQuantityItemInCart { get; set; }
+
+    public void Mapping(Profile profile)
+    {
+        profile.CreateMap<User, UserResponse>()
+            .ForMember(d => d.TotalQuantityItemInCart, opt => opt.MapFrom(s => s.CartItems.Count));
+    }
 }
