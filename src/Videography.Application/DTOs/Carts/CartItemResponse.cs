@@ -9,4 +9,5 @@ public class CartItemResponse : IMapFrom<CartItem>
     public DateOnly? StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
     public int ProductId { get; set; }
+    //public ProductResponse Product { get; set; } = default!;
 }

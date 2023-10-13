@@ -5,6 +5,7 @@ using Videography.Application.DTOs.Addresses;
 using Videography.Application.DTOs.Bookings;
 using Videography.Application.DTOs.Carts;
 using Videography.Application.DTOs.CreditCards;
+using Videography.Application.DTOs.Reviews;
 using Videography.Application.DTOs.Users;
 using Videography.Application.DTOs.Wishlists;
 using Videography.Application.Helpers;
@@ -27,9 +28,9 @@ public class UsersController : ControllerBase
     #region User
 
     [HttpGet("Profile")]
-    public async Task<IActionResult> GetProfileUserAsync()
+    public async Task<IActionResult> FindUserProfileAsync()
     {
-        var userResponse = await _userService.GetProfileUserAsync();
+        var userResponse = await _userService.FindUserProfileAsync();
         //userResponse.AvatarUrl = Url.Link(Routes.UserAvatarRoute, new { userId = userResponse.Id })!;
         return Ok(userResponse);
     }
@@ -223,30 +224,30 @@ public class UsersController : ControllerBase
     #region Wishlists
 
     [HttpGet("Wishlists")]
-    public async Task<IActionResult> GetWishlistItemsAsync(int pageIndex, int pageSize)
+    public async Task<IActionResult> GetProductsInWishlistsAsync(int pageIndex, int pageSize)
     {
-        var paginationWishlists = await _userService.GetWishlistItemsAsync(pageIndex, pageSize);
+        var paginationWishlists = await _userService.GetProductsInWishlistsAsync(pageIndex, pageSize);
         return Ok(paginationWishlists.ToPaginatedResponse());
     }
 
     [HttpPost("Wishlists")]
-    public async Task<IActionResult> AddWishlistItemAsync(CreateWishlistItemRequest request)
+    public async Task<IActionResult> AddProductToWishlistAsync(CreateWishlistItemRequest request)
     {
-        var wishlistItemResponse = await _userService.AddWishlistItemAsync(request);
+        var wishlistItemResponse = await _userService.AddProductToWishlistAsync(request);
         return Ok(wishlistItemResponse);
     }
 
     [HttpDelete("Wishlists")]
-    public async Task<IActionResult> RemoveWishlistItemsAsync()
+    public async Task<IActionResult> RemoveProductsFromWishlistAsync()
     {
-        await _userService.RemoveWishlistItemsAsync();
+        await _userService.RemoveProductsFromWishlistAsync();
         return Ok(new { StatusMessage = $"Remove all Wishlists succesfully." });
     }
 
     [HttpDelete("Wishlists/{productId}")]
-    public async Task<IActionResult> RemoveWishlistItemAsync(int productId)
+    public async Task<IActionResult> RemoveProductFromWishlistAsync(int productId)
     {
-        await _userService.RemoveWishlistItemAsync(productId);
+        await _userService.RemoveProductFromWishlistAsync(productId);
         return Ok(new { StatusMessage = $"Remove product {productId} in Wishlists succesfully." });
     }
 
@@ -269,13 +270,47 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("Bookings/{bookingId}/BookingItems")]
-    public async Task<IActionResult> FindBookingItemsAsync(int bookingId)
+    public async Task<IActionResult> GetBookingItemsForBookingAsync(int bookingId)
     {
-        var bookingItemResponses = await _userService.FindBookingItemsAsync(bookingId);
+        var bookingItemResponses = await _userService.GetBookingItemsForBookingAsync(bookingId);
         return Ok(bookingItemResponses);
     }
     #endregion
 
     #region Reviews
+
+    [HttpGet("Bookings/BookingItems/{bookingItemId}/Review")]
+    public async Task<IActionResult> FindReviewFromBookingItemAsync(int bookingItemId)
+    {
+        var reviewBookingItemResponse = await _userService.FindReviewFromBookingItemAsync(bookingItemId);
+        return Ok(reviewBookingItemResponse);
+    }
+
+    [HttpPost("Bookings/BookingItems/{bookingItemId}/Review")]
+    public async Task<IActionResult> AddReviewForBookingItemAsync(int bookingItemId, CreateReviewRequest request)
+    {
+        var reviewBookingItemResponse = await _userService.AddReviewForBookingItemAsync(bookingItemId, request);
+        return Ok(reviewBookingItemResponse);
+    }
+
+    [HttpDelete("Bookings/BookingItems/{bookingItemId}/Review")]
+    public async Task<IActionResult> RemoveReviewFromBookingItemAsync(int bookingItemId)
+    {
+        await _userService.RemoveReviewFromBookingItemAsync(bookingItemId);
+        return Ok(new { StatusMessage = $"Remove Review of booking item {bookingItemId} succesfully." });
+    }
+
+    [HttpPut("Bookings/BookingItems/{bookingItemId}/Review/{reviewId}")]
+    public async Task<IActionResult> EditReviewForBookingItemAsync(int bookingItemId, int reviewId, UpdateReviewRequest request)
+    {
+        if (reviewId != request.Id)
+        {
+            return BadRequest();
+        }
+
+        await _userService.EditReviewForBookingItemAsync(bookingItemId, request);
+        return Ok(new { StatusMessage = $"Update Review of booking item {bookingItemId} succesfully." });
+    }
+
     #endregion
 }

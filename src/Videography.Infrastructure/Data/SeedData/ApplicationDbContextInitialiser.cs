@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Videography.Application.Extensions;
 using Videography.Domain.Constants;
 using Videography.Domain.Entities;
 using Videography.Domain.Enums;
@@ -33,6 +34,22 @@ public class ApplicationDbContextInitialiser
         try
         {
             await _context.Database.MigrateAsync();
+
+            _context.BookingItems.Include(c => c.Review).ToList().ForEach(x =>
+           {
+               x.IsReviewed = x.Review != null;
+           });
+
+            _context.Products.Include(c => c.BookingItems).ThenInclude(c => c.Review).ToList().ForEach(x =>
+           {
+               var reviews = x.BookingItems.Where(c => c.Review != null).Select(c => c.Review);
+               x.TotalReviews = reviews.Count();
+               var averageRating = reviews.IsNullOrEmpty() ? 0 : reviews.Average(c => c.Rating);
+               x.AverageRating = Math.Round(averageRating, 1);
+           });
+
+            await _context.SaveChangesAsync();
+
         }
         catch (Exception ex)
         {

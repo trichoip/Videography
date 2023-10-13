@@ -135,9 +135,9 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id}/Bookings")]
-    public async Task<IActionResult> FindValidBookingItemsAsync(int id)
+    public async Task<IActionResult> GetValidBookingItemsAsync(int id)
     {
-        var bookingItemValidResponses = await _productService.FindValidBookingItemsAsync(id);
+        var bookingItemValidResponses = await _productService.GetValidBookingItemsAsync(id);
         return Ok(bookingItemValidResponses);
     }
 

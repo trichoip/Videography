@@ -46,7 +46,7 @@ public class ProductService : IProductService
 
     public async Task<ProductResponse> CreateAsync(CreateProductRequest request)
     {
-        if (!await IsHasCategoryAsync(request.CategoryId))
+        if (!await HasCategoryAsync(request.CategoryId))
             throw new NotFoundException(nameof(Category), request.CategoryId);
 
         var product = _mapper.Map<Product>(request);
@@ -64,15 +64,13 @@ public class ProductService : IProductService
     }
     public async Task<ProductResponse> UpdateAsync(UpdateProductRequest request)
     {
-        if (!await IsHasCategoryAsync(request.CategoryId))
-            throw new NotFoundException(nameof(Category), request.CategoryId);
-
-        var product = await _unitOfWork.ProductRepository.FindByIdAsync(request.Id);
+        if (!await HasCategoryAsync(request.CategoryId)) throw new NotFoundException(nameof(Category), request.CategoryId);
+        var product = await _unitOfWork.ProductRepository.FindByAsync(
+                  expression: c => c.Id == request.Id,
+                 includeFunc: x => x.Include(x => x.Category).Include(x => x.Images));
         if (product is null) throw new NotFoundException(nameof(Product), request.Id);
-
         _mapper.Map(request, product);
         //await _unitOfWork.ProductRepository.UpdateAsync(product);
-
         await _unitOfWork.CommitAsync();
         return _mapper.Map<ProductResponse>(product);
     }
@@ -104,6 +102,7 @@ public class ProductService : IProductService
     {
 
         var productIQ = await _unitOfWork.ProductRepository.FindToIQueryableAsync(expression, orderBy, includeFunc);
+
         var paginationProducts = await _mapper.ProjectTo<ProductResponse>(productIQ).PaginatedListAsync(pageIndex, pageSize);
 
         paginationProducts.ForEach(product => product.IsInWislish = IsInWishlistAsync(product.Id).Result);
@@ -140,7 +139,7 @@ public class ProductService : IProductService
                   .ExistsByAsync(c => c.UserId == user.Id && c.ProductId == productId);
     }
 
-    public async Task<bool> IsHasCategoryAsync(int categoryId)
+    public async Task<bool> HasCategoryAsync(int categoryId)
     {
         return await _unitOfWork.CategoryRepository.ExistsByAsync(c => c.Id == categoryId);
     }
@@ -150,12 +149,12 @@ public class ProductService : IProductService
         if (!await _unitOfWork.ProductRepository.ExistsByAsync(c => c.Id == productId))
             throw new NotFoundException(nameof(Product), productId);
 
-        var images = await _unitOfWork.ImageRepository.FindAsync(c => c.ProductId == productId);
-        //if (images.IsNullOrEmpty()) throw new NotFoundException($"product {productId} not have any image");
+        var images = await _unitOfWork.ImageRepository.FindToIQueryableAsync(c => c.ProductId == productId);
 
-        var imageResponses = _mapper.Map<IList<ImageResponse>>(images);
+        var imageResponses = await _mapper.ProjectTo<ImageResponse>(images).ToListAsync();
+        //if (imageResponses.IsNullOrEmpty()) throw new NotFoundException($"product {productId} not have any image");
 
-        imageResponses.ToList().ForEach(imageResponse =>
+        imageResponses.ForEach(imageResponse =>
                imageResponse.ImageUrl = _urlHelper.Link(Routes.ProductImageRoute, new { imageId = imageResponse.Id })!);
 
         return imageResponses;
@@ -254,7 +253,7 @@ public class ProductService : IProductService
         return paginationreviews;
     }
 
-    public async Task<IList<BookingItemValidResponse>> FindValidBookingItemsAsync(int productId)
+    public async Task<IList<BookingItemValidResponse>> GetValidBookingItemsAsync(int productId)
     {
         //if (!await _unitOfWork.ProductRepository.ExistsByAsync(c => c.Id == productId))
         //    throw new NotFoundException(nameof(Product), productId);

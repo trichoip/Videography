@@ -21,16 +21,23 @@ public interface IProductService
             Func<IQueryable<Product>, IOrderedQueryable<Product>>? orderBy = null,
             Func<IQueryable<Product>, IQueryable<Product>>? includeFunc = null);
 
+    //Task<IList<ProductResponse>> GetProductsForCategoryAsync(int categoryId);
+    //Task<IList<ProductResponse>> GetProductsForBookingAsync(int bookingId);
+    //Task<IList<ProductResponse>> GetProductsInWishlistAsync(int userId);
+    //Task AddToWishlistAsync(User user, int productId); // them vao danh sach yeu thich
+    //Task RemoveFromWishlistAsync(User user, int productId); // xoa khoi danh sach yeu thich
+
     Task<bool> IsInWishlistAsync(int productId);
-    Task<bool> IsHasCategoryAsync(int categoryId);
+    Task<bool> HasCategoryAsync(int categoryId);
 
     Task<IList<ImageResponse>> GetImagesAsync(int productId);
     Task AddImageAsync(int productId, IFormFile image);
     Task RemoveImageAsync(int productId, int imageId);
     Task AddImagesAsync(int productId, IFormFileCollection images);
     Task RemoveImagesAsync(int productId);
+    //Task RemoveImagesAsync(IEnumerable<int> imageIds);
 
     Task<PaginatedList<ReviewResponse>> GetReviewsAsync(int productId, int pageIndex, int pageSize);
 
-    Task<IList<BookingItemValidResponse>> FindValidBookingItemsAsync(int productId);
+    Task<IList<BookingItemValidResponse>> GetValidBookingItemsAsync(int productId);
 }
