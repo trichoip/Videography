@@ -52,7 +52,7 @@ public interface IUserService
     Task<CreditCardResponse?> FindPrimaryCreditCardAsync();
     Task CancelAllPrimaryCreditCardAsync(int userId);
     Task SetPrimaryCreditCardAsync(int creditCardId, bool isPrimary);
-    Task<bool> IsHasCreditCardTypeAsync(int creditCardTypeId);
+    Task<bool> HasCreditCardTypeAsync(int creditCardTypeId);
     #endregion
 
     #region Cart

@@ -163,7 +163,7 @@ public class UserService : IUserService
     {
         if (await FindCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
 
-        if (!await IsHasCreditCardTypeAsync(request.CreditCardTypeId))
+        if (!await HasCreditCardTypeAsync(request.CreditCardTypeId))
             throw new NotFoundException(nameof(CreditCardType), request.CreditCardTypeId);
 
         var creditCard = _mapper.Map<CreditCard>(request);
@@ -177,7 +177,7 @@ public class UserService : IUserService
     {
         if (await FindCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
 
-        if (!await IsHasCreditCardTypeAsync(request.CreditCardTypeId))
+        if (!await HasCreditCardTypeAsync(request.CreditCardTypeId))
             throw new NotFoundException(nameof(CreditCardType), request.CreditCardTypeId);
 
         var creditCard = await _unitOfWork.CreditCardRepository.FindByAsync(c => c.Id == request.Id && c.UserId == user.Id);
@@ -260,7 +260,7 @@ public class UserService : IUserService
         creditCards.ForEach(c => c.IsPrimary = false);
     }
 
-    public async Task<bool> IsHasCreditCardTypeAsync(int creditCardTypeId)
+    public async Task<bool> HasCreditCardTypeAsync(int creditCardTypeId)
     {
         return await _unitOfWork.CreditCardTypeRepository.ExistsByAsync(c => c.Id == creditCardTypeId);
     }
@@ -501,7 +501,8 @@ public class UserService : IUserService
     {
         if (await FindCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
         if (!await HasProductAsync(request.ProductId)) throw new NotFoundException(nameof(Product), request.ProductId);
-        if (await _unitOfWork.WishlistRepository.ExistsByAsync(c => c.UserId == user.Id && c.ProductId == request.ProductId)) throw new ConflictException($"Product {request.ProductId} is already in wishlist");
+        if (await _unitOfWork.WishlistRepository.ExistsByAsync(c => c.UserId == user.Id && c.ProductId == request.ProductId))
+            throw new ConflictException($"Product {request.ProductId} is already in wishlist");
 
         var wishlist = _mapper.Map<Wishlist>(request);
         wishlist.User = user;
