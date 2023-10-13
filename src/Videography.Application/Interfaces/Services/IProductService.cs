@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
+using Videography.Application.DTOs.BookingItems;
 using Videography.Application.DTOs.Images;
 using Videography.Application.DTOs.Products;
 using Videography.Application.DTOs.Reviews;
@@ -30,4 +31,6 @@ public interface IProductService
     Task RemoveImagesAsync(int productId);
 
     Task<PaginatedList<ReviewResponse>> GetReviewsAsync(int productId, int pageIndex, int pageSize);
+
+    Task<IList<BookingItemValidResponse>> FindValidBookingItemsAsync(int productId);
 }

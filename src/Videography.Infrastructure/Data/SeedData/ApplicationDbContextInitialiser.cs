@@ -220,7 +220,7 @@ public class ApplicationDbContextInitialiser
             .RuleFor(x => x.Product, _ => _.Random.CollectionItem(product));
 
         var booking = new AutoFaker<Booking>()
-            .RuleFor(x => x.Status, _ => BookStatus.SUCCESS)
+            .RuleFor(x => x.Status, _ => BookingStatus.SUCCESS)
             .RuleFor(x => x.TotalAmount, _ => _.Random.Decimal(300, 1500))
             .RuleFor(x => x.TotalQuantity, _ => _.Random.Int(1, 15))
             .RuleFor(x => x.User, _ => admin)

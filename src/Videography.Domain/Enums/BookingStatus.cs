@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 
 namespace Videography.Domain.Enums;
-public enum BookStatus
+public enum BookingStatus
 {
     CANCEL = 1,
     SUCCESS = 2,

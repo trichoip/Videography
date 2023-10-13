@@ -2,9 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Videography.Application.DTOs;
 using Videography.Application.DTOs.Addresses;
+using Videography.Application.DTOs.Bookings;
 using Videography.Application.DTOs.Carts;
 using Videography.Application.DTOs.CreditCards;
 using Videography.Application.DTOs.Users;
+using Videography.Application.DTOs.Wishlists;
+using Videography.Application.Helpers;
 using Videography.Application.Interfaces.Services;
 using Videography.WebApi.Attributes;
 
@@ -215,5 +218,64 @@ public class UsersController : ControllerBase
         return Ok(new { StatusMessage = $"Update CreditCard {cartItemId} succesfully." });
     }
 
+    #endregion
+
+    #region Wishlists
+
+    [HttpGet("Wishlists")]
+    public async Task<IActionResult> GetWishlistItemsAsync(int pageIndex, int pageSize)
+    {
+        var paginationWishlists = await _userService.GetWishlistItemsAsync(pageIndex, pageSize);
+        return Ok(paginationWishlists.ToPaginatedResponse());
+    }
+
+    [HttpPost("Wishlists")]
+    public async Task<IActionResult> AddWishlistItemAsync(CreateWishlistItemRequest request)
+    {
+        var wishlistItemResponse = await _userService.AddWishlistItemAsync(request);
+        return Ok(wishlistItemResponse);
+    }
+
+    [HttpDelete("Wishlists")]
+    public async Task<IActionResult> RemoveWishlistItemsAsync()
+    {
+        await _userService.RemoveWishlistItemsAsync();
+        return Ok(new { StatusMessage = $"Remove all Wishlists succesfully." });
+    }
+
+    [HttpDelete("Wishlists/{productId}")]
+    public async Task<IActionResult> RemoveWishlistItemAsync(int productId)
+    {
+        await _userService.RemoveWishlistItemAsync(productId);
+        return Ok(new { StatusMessage = $"Remove product {productId} in Wishlists succesfully." });
+    }
+
+    #endregion
+
+    #region Bookings
+
+    [HttpGet("Bookings")]
+    public async Task<IActionResult> GetBookingsAsync(int pageIndex, int pageSize)
+    {
+        var paginationBookings = await _userService.GetBookingsAsync(pageIndex, pageSize);
+        return Ok(paginationBookings.ToPaginatedResponse());
+    }
+
+    [HttpPost("Bookings")]
+    public async Task<IActionResult> AddBookingAsync(CreateBookingRequest request)
+    {
+        var bookingsResponse = await _userService.AddBookingAsync(request);
+        return Ok(bookingsResponse);
+    }
+
+    [HttpGet("Bookings/{bookingId}/BookingItems")]
+    public async Task<IActionResult> FindBookingItemsAsync(int bookingId)
+    {
+        var bookingItemResponses = await _userService.FindBookingItemsAsync(bookingId);
+        return Ok(bookingItemResponses);
+    }
+    #endregion
+
+    #region Reviews
     #endregion
 }

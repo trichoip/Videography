@@ -8,8 +8,8 @@ public class Booking : BaseEntity
     public decimal TotalAmount { get; set; }
     public int TotalQuantity { get; set; }
 
-    [EnumDataType(typeof(BookStatus))]
-    public BookStatus Status { get; set; }
+    [EnumDataType(typeof(BookingStatus))]
+    public BookingStatus Status { get; set; }
 
     public int UserId { get; set; }
     public int? AddressId { get; set; }

@@ -130,8 +130,15 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}/Reviews")]
     public async Task<IActionResult> GetReviewsAsync(int id, int pageIndex, int pageSize)
     {
-        var paginationreviews = await _productService.GetReviewsAsync(id, pageIndex, pageSize);
-        return Ok(paginationreviews.ToPaginatedResponse());
+        var paginationReviews = await _productService.GetReviewsAsync(id, pageIndex, pageSize);
+        return Ok(paginationReviews.ToPaginatedResponse());
+    }
+
+    [HttpGet("{id}/Bookings")]
+    public async Task<IActionResult> FindValidBookingItemsAsync(int id)
+    {
+        var bookingItemValidResponses = await _productService.FindValidBookingItemsAsync(id);
+        return Ok(bookingItemValidResponses);
     }
 
 }

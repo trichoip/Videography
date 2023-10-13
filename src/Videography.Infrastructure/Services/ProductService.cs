@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Videography.Application.Common.Exceptions;
 using Videography.Application.Common.Mappings;
+using Videography.Application.DTOs.BookingItems;
 using Videography.Application.DTOs.Images;
 using Videography.Application.DTOs.Products;
 using Videography.Application.DTOs.Reviews;
@@ -15,6 +16,7 @@ using Videography.Application.Helpers;
 using Videography.Application.Interfaces.Repositories;
 using Videography.Application.Interfaces.Services;
 using Videography.Domain.Entities;
+using Videography.Domain.Enums;
 
 namespace Videography.Infrastructure.Services;
 public class ProductService : IProductService
@@ -250,5 +252,20 @@ public class ProductService : IProductService
                    reviewResponse.User.AvatarUrl = _urlHelper.Link(Routes.UserAvatarRoute, new { userId = reviewResponse.User.Id }));
 
         return paginationreviews;
+    }
+
+    public async Task<IList<BookingItemValidResponse>> FindValidBookingItemsAsync(int productId)
+    {
+        //if (!await _unitOfWork.ProductRepository.ExistsByAsync(c => c.Id == productId))
+        //    throw new NotFoundException(nameof(Product), productId);
+
+        var bookingItemsIQ = await _unitOfWork.BookingItemRepository
+                .FindToIQueryableAsync(c => c.ProductId == productId &&
+                                            c.Booking.Status == BookingStatus.SUCCESS &&
+                                            c.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+
+        var bookingItemValidResponses = await _mapper.ProjectTo<BookingItemValidResponse>(bookingItemsIQ).ToListAsync();
+
+        return bookingItemValidResponses;
     }
 }

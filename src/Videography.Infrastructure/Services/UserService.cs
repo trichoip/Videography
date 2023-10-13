@@ -2,15 +2,24 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Videography.Application.Common.Exceptions;
+using Videography.Application.Common.Mappings;
+using Videography.Application.DTOs;
 using Videography.Application.DTOs.Addresses;
+using Videography.Application.DTOs.BookingItems;
+using Videography.Application.DTOs.Bookings;
 using Videography.Application.DTOs.Carts;
 using Videography.Application.DTOs.CreditCards;
 using Videography.Application.DTOs.Users;
+using Videography.Application.DTOs.Wishlists;
+using Videography.Application.Extensions;
+using Videography.Application.Helpers;
 using Videography.Application.Interfaces.Repositories;
 using Videography.Application.Interfaces.Services;
 using Videography.Domain.Entities;
+using Videography.Domain.Enums;
 
 namespace Videography.Infrastructure.Services;
 public class UserService : IUserService
@@ -345,6 +354,11 @@ public class UserService : IUserService
             {
                 throw new BadRequestException($"The product has been booked during this period");
             }
+
+            if (!await IsValidCartItemAsync(request.ProductId, user.Id, request.StartDate.Value, request.EndDate.Value))
+            {
+                throw new BadRequestException($"The product has been in your cart during this period");
+            }
         }
 
         var cartItem = _mapper.Map<CartItem>(request);
@@ -379,6 +393,11 @@ public class UserService : IUserService
             if (!await IsValidBookingAsync(cartItem.ProductId, request.StartDate, request.EndDate))
             {
                 throw new BadRequestException($"The product has been booked during this period");
+            }
+
+            if (!await IsValidCartItemAsync(cartItem.ProductId, user.Id, request.StartDate.Value, request.EndDate.Value, cartItem.Id))
+            {
+                throw new BadRequestException($"The product has been in your cart during this period");
             }
         }
 
@@ -417,10 +436,11 @@ public class UserService : IUserService
 
         var isHasBooking = await _unitOfWork.BookingItemRepository
             .ExistsByAsync(c => c.ProductId == productId &&
-                          (startDate >= c.StartDate && startDate <= c.EndDate ||
-                           endDate >= c.StartDate && endDate <= c.EndDate ||
-                           c.StartDate >= startDate && c.StartDate <= endDate ||
-                           c.EndDate >= startDate && c.EndDate <= endDate));
+                                c.Booking.Status == BookingStatus.SUCCESS &&
+                               (startDate >= c.StartDate && startDate <= c.EndDate ||
+                                endDate >= c.StartDate && endDate <= c.EndDate ||
+                                c.StartDate >= startDate && c.StartDate <= endDate ||
+                                c.EndDate >= startDate && c.EndDate <= endDate));
         if (isHasBooking)
         {
             return false;
@@ -430,9 +450,135 @@ public class UserService : IUserService
 
     }
 
+    public async Task<bool> IsValidCartItemAsync(int productId, int userId, DateOnly startDate, DateOnly endDate, int cartItemId = 0)
+    {
+        var isHasBooking = await _unitOfWork.CartItemRepository
+            .ExistsByAsync(c => c.ProductId == productId &&
+                                c.UserId == userId &&
+                                c.Id != cartItemId &&
+                               (startDate >= c.StartDate && startDate <= c.EndDate ||
+                                endDate >= c.StartDate && endDate <= c.EndDate ||
+                                c.StartDate >= startDate && c.StartDate <= endDate ||
+                                c.EndDate >= startDate && c.EndDate <= endDate));
+        if (isHasBooking)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     public async Task<bool> IsHasProductAsync(int productId)
     {
         return await _unitOfWork.ProductRepository.ExistsByAsync(c => c.Id == productId);
     }
+    #endregion
+
+    #region Wishlist
+    public async Task<PaginatedList<WishlistItemResponse>> GetWishlistItemsAsync(int pageIndex, int pageSize)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var wishlistsIQ = await _unitOfWork.WishlistRepository.FindToIQueryableAsync(c => c.UserId == user.Id);
+        var paginationWishlists = await _mapper.ProjectTo<WishlistItemResponse>(wishlistsIQ).PaginatedListAsync(pageIndex, pageSize);
+        return paginationWishlists;
+    }
+
+    public async Task<WishlistItemResponse> AddWishlistItemAsync(CreateWishlistItemRequest request)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        if (!await IsHasProductAsync(request.ProductId)) throw new NotFoundException(nameof(Product), request.ProductId);
+        if (await _unitOfWork.WishlistRepository.ExistsByAsync(c => c.UserId == user.Id && c.ProductId == request.ProductId)) throw new ConflictException($"Product {request.ProductId} is already in wishlist");
+
+        var wishlist = _mapper.Map<Wishlist>(request);
+        wishlist.User = user;
+        await _unitOfWork.WishlistRepository.CreateAsync(wishlist);
+        await _unitOfWork.CommitAsync();
+        return _mapper.Map<WishlistItemResponse>(wishlist);
+    }
+
+    public async Task RemoveWishlistItemAsync(int productId)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var wishlist = await _unitOfWork.WishlistRepository.FindByAsync(c => c.ProductId == productId && c.UserId == user.Id);
+        if (wishlist == null) throw new NotFoundException($"User {user.Id} not have product {productId} in wishlists.");
+
+        await _unitOfWork.WishlistRepository.DeleteAsync(wishlist);
+        await _unitOfWork.CommitAsync();
+    }
+
+    public async Task RemoveWishlistItemsAsync()
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        user.Wishlists.Clear();
+        await _unitOfWork.CommitAsync();
+    }
+    #endregion
+
+    #region Booking
+    public async Task<PaginatedList<BookingResponse>> GetBookingsAsync(int pageIndex, int pageSize)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+        var bookingsIQ = await _unitOfWork.BookingRepository.FindToIQueryableAsync(c => c.UserId == user.Id);
+        var paginationBookings = await _mapper.ProjectTo<BookingResponse>(bookingsIQ).PaginatedListAsync(pageIndex, pageSize);
+        return paginationBookings;
+    }
+
+    public async Task<IList<BookingItemResponse>> FindBookingItemsAsync(int bookingId)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+
+        var bookingItems = await _unitOfWork.BookingItemRepository
+                    .FindToIQueryableAsync(c => c.BookingId == bookingId && c.Booking.UserId == user.Id);
+        var bookingItemResponses = await _mapper.ProjectTo<BookingItemResponse>(bookingItems).ToListAsync();
+        if (bookingItemResponses.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have booking {bookingId}");
+
+        return bookingItemResponses;
+    }
+
+    public async Task<CreateBookingResponse> AddBookingAsync(CreateBookingRequest request)
+    {
+        if (await GetCurrentUserAsync() is not { } user) throw new UnauthorizedAccessException();
+
+        var cartItems = await _unitOfWork.CartItemRepository.FindAsync(c => c.UserId == user.Id);
+        if (cartItems.IsNullOrEmpty()) throw new NotFoundException($"User {user.Id} not have any cart item");
+
+        if (!await _unitOfWork.AddressRepository.ExistsByAsync(c => c.UserId == user.Id && c.Id == request.AddressId))
+            throw new NotFoundException($"User {user.Id} not have address {request.AddressId}");
+
+        if (!await _unitOfWork.CreditCardRepository.ExistsByAsync(c => c.UserId == user.Id && c.Id == request.CreditCardId))
+            throw new NotFoundException($"User {user.Id} not have credit card {request.CreditCardId}");
+
+        ModelStateDictionary modelState = new ModelStateDictionary();
+        cartItems.ToList().ForEach(c =>
+        {
+            if (!IsValidBookingAsync(c.ProductId, c.StartDate, c.EndDate).Result)
+            {
+                modelState.AddModelError("cartItems", $"The cart item {c.Id} invalid");
+            }
+        });
+        if (!modelState.IsValid) throw new ValidationBadRequestException(modelState);
+
+        var booking = _mapper.Map<Booking>(request);
+        booking.User = user;
+        booking.Status = BookingStatus.SUCCESS;
+        booking.TotalAmount = cartItems.Sum(c => c.Quantity * c.Product.Amount);
+        booking.TotalQuantity = cartItems.Sum(c => c.Quantity);
+        booking.BookingItems = cartItems.Select(c => new BookingItem
+        {
+            ProductId = c.ProductId,
+            Quantity = c.Quantity,
+            Amount = c.Product.Amount,
+            StartDate = c.StartDate.Value,
+            EndDate = c.EndDate.Value,
+            IsReviewed = false
+        }).ToList();
+
+        await _unitOfWork.BookingRepository.CreateAsync(booking);
+        await _unitOfWork.CartItemRepository.DeleteRangeAsync(cartItems);
+
+        await _unitOfWork.CommitAsync();
+        return _mapper.Map<CreateBookingResponse>(booking);
+    }
+
     #endregion
 }
