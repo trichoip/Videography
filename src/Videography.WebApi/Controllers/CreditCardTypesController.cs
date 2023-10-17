@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Videography.Application.DTOs.CreditCardTypes;
 using Videography.Application.Interfaces.Services;
-using Videography.Domain.Constants;
 
 namespace Videography.WebApi.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+//[Authorize]
 public class CreditCardTypesController : ControllerBase
 {
     private readonly ICreditCardTypeService _creditCardTypeService;
@@ -31,7 +29,7 @@ public class CreditCardTypesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    //[Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<CreditCardTypeResponse>> UpdateAsync(int id, UpdateCreditCardTypeRequest request)
     {
         if (id != request.Id)
@@ -43,7 +41,7 @@ public class CreditCardTypesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Roles.Admin)]
+    //[Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<CreditCardTypeResponse>> CreateAsync(CreateCreditCardTypeRequest request)
     {
         var creditCardTypeResponse = await _creditCardTypeService.CreateAsync(request);
@@ -51,7 +49,7 @@ public class CreditCardTypesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    //[Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> DeleteAsync(int id)
     {
         await _creditCardTypeService.DeleteAsync(id);

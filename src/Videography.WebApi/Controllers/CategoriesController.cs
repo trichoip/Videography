@@ -1,14 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Videography.Application.DTOs.Categories;
 using Videography.Application.Interfaces.Services;
-using Videography.Domain.Constants;
 
 namespace Videography.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+//[Authorize]
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
@@ -32,7 +30,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    //[Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<CategoryResponse>> UpdateAsync(int id, UpdateCategoryRequest request)
     {
         if (id != request.Id)
@@ -44,7 +42,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = Roles.Admin)]
+    //[Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<CategoryResponse>> CreateAsync(CreateCategoryRequest request)
     {
         var categoryResponse = await _categoryService.CreateAsync(request);
@@ -52,7 +50,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = Roles.Admin)]
+    //[Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> DeleteAsync(int id)
     {
         await _categoryService.DeleteAsync(id);
